@@ -1,11 +1,6 @@
 package main
 
-import (
-	// "io"
-	// "os"
-	// "fmt"
-	"github.com/nsf/termbox-go"
-)
+import "github.com/nsf/termbox-go"
 
 var (
 	leader                 = termbox.KeyCtrlB

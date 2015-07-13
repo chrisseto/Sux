@@ -8,18 +8,18 @@ import (
 )
 
 var (
-	quitChan        chan bool
-	selectChan      chan *Pane
-	selectedIndex   = 0
-	SelectedPane *Pane
-	RunningPanes []*Pane
+	quitChan      chan bool
+	selectChan    chan *Pane
+	selectedIndex = 0
+	SelectedPane  *Pane
+	RunningPanes  []*Pane
 )
 
 func RunPanes() error {
 	quitChan = make(chan bool)
 	selectChan = make(chan *Pane)
-  width, height := termbox.Size()
-  uwidth, uheight := uint16(width), uint16(height)
+	width, height := termbox.Size()
+	uwidth, uheight := uint16(width), uint16(height)
 	cmds := strings.Split(strings.Join(flag.Args(), " "), ",")
 
 	RunningPanes = make([]*Pane, len(cmds))

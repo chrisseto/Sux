@@ -1,24 +1,26 @@
 package main
 
 import (
-	"io"
-	"os"
 	"bufio"
 	"github.com/chrisseto/pty"
+	"io"
+	"os"
+	// "github.com/nsf/termbox-go"
 	"os/exec"
 )
 
 type Pane struct {
 	*exec.Cmd
 
-  cx, cy int
-  width, height uint16
+	cx, cy        int
+	width, height uint16
 
-  prog string
-  args []string
+	prog string
+	args []string
 
 	Pty    *os.File
 	output io.Reader
+	// cells []termbox.Cell
 	Output chan []byte
 }
 
@@ -41,14 +43,14 @@ func (p *Pane) Start() error {
 		panic(err)
 	}
 	p.Pty = pterm
-	p.Output = make(chan []byte, 20)
+	p.Output = make(chan []byte, 32)
 	p.output = bufio.NewReader(p.Pty)
 	go p.outputPipe()
 	return nil
 }
 
 func (p *Pane) Close() error {
-  return p.Process.Kill()
+	return p.Process.Kill()
 }
 
 func (p *Pane) outputPipe() {
