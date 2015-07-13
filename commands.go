@@ -9,31 +9,33 @@ import (
 
 var (
 	quitChan        chan bool
-	selectChan      chan *Cmd
+	selectChan      chan *Pane
 	selectedIndex   = 0
-	SelectedCommand *Cmd
-	RunningCommands []*Cmd
+	SelectedPane *Pane
+	RunningPanes []*Pane
 )
 
-func StartCommands() error {
+func RunPanes() error {
 	quitChan = make(chan bool)
-	selectChan = make(chan *Cmd)
+	selectChan = make(chan *Pane)
+  width, height := termbox.Size()
+  uwidth, uheight := uint16(width), uint16(height)
 	cmds := strings.Split(strings.Join(flag.Args(), " "), ",")
 
-	RunningCommands = make([]*Cmd, len(cmds))
+	RunningPanes = make([]*Pane, len(cmds))
 
 	for i, cmd := range cmds {
 		cmdsp := strings.Split(strings.Trim(cmd, " "), " ")
-		RunningCommands[i] = Command(cmdsp[0], cmdsp[1:]...)
-		err := RunningCommands[i].Start()
+		RunningPanes[i] = CreatePane(uwidth, uheight, cmdsp[0], cmdsp[1:]...)
+		err := RunningPanes[i].Start()
 
 		if err != nil {
 			return err
 		}
 	}
 
-	SelectedCommand = RunningCommands[selectedIndex]
-	selectChan <- SelectedCommand
+	SelectedPane = RunningPanes[selectedIndex]
+	selectChan <- SelectedPane
 	return nil
 }
 
@@ -50,32 +52,32 @@ func OutputLoop() {
 	}
 }
 
-func setCommand() {
-	SelectedCommand = RunningCommands[selectedIndex]
+func setPane(index int) {
+	SelectedPane = RunningPanes[index]
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	termbox.Sync()
-	selectChan <- SelectedCommand
+	selectChan <- SelectedPane
 }
 
-func NextCommand() {
+func NextPane() {
 	selectedIndex++
-	if selectedIndex >= len(RunningCommands) {
+	if selectedIndex >= len(RunningPanes) {
 		selectedIndex = 0
 	}
-	setCommand()
+	setPane(selectedIndex)
 }
 
-func PrevCommand() {
+func PrevPane() {
 	selectedIndex--
 	if selectedIndex < 0 {
-		selectedIndex = len(RunningCommands) - 1
+		selectedIndex = len(RunningPanes) - 1
 	}
-	setCommand()
+	setPane(selectedIndex)
 }
 
-func EndCommands() {
+func EndPanes() {
 	quitChan <- true
-	for _, cmd := range RunningCommands {
+	for _, cmd := range RunningPanes {
 		cmd.Close()
 	}
 }

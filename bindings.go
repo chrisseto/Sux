@@ -20,9 +20,9 @@ func leaderPress() bool {
 			InputChan <- nil
 			return true
 		case termbox.KeyArrowRight:
-			NextCommand()
+			NextPane()
 		case termbox.KeyArrowLeft:
-			PrevCommand()
+			PrevPane()
 		}
 	case termbox.EventError:
 		panic(ev.Err)
@@ -50,7 +50,7 @@ func InputLoop() {
 					}
 
 				default:
-					SelectedCommand.Pty.Write(raw)
+					SelectedPane.Pty.Write(raw)
 				}
 			}
 		}

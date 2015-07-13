@@ -26,12 +26,12 @@ func main() {
 	MaybePanic(termbox.Init())
 
 	defer termbox.Close()
-	defer EndCommands()
+	defer EndPanes()
 
 	go InputLoop()
 	go OutputLoop()
 
-	MaybePanic(StartCommands())
+	MaybePanic(RunPanes())
 
 	<-InputChan
 }
