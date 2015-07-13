@@ -1,10 +1,10 @@
 package main
 
 import (
-	"bufio"
-	"github.com/kr/pty"
 	"io"
 	"os"
+	"bufio"
+	"github.com/chrisseto/pty"
 	"os/exec"
 )
 
@@ -19,11 +19,14 @@ func Command(prog string, args ...string) *Cmd {
 	return &Cmd{exec.Command(prog, args...), nil, nil, nil}
 }
 
-func (c *Cmd) Start() error {
+func (c *Cmd) Start(width, height int) error {
 	pterm, err := pty.Start(c.Cmd)
 	if err != nil {
 		return err
 	}
+  if err = pty.Setsize(pterm, uint16(width), uint16(height)); err != nil {
+    panic(err)
+  }
 	c.Pty = pterm
 	c.Output = make(chan []byte, 20)
 	c.output = bufio.NewReader(c.Pty)
