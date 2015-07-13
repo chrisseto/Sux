@@ -53,11 +53,12 @@ func (p *Pane) Close() error {
 
 func (p *Pane) outputPipe() {
 	buf := make([]byte, 32*1024)
-
 	for {
 		nr, err := p.output.Read(buf)
 		if nr > 0 {
-			p.Output <- buf[0:nr]
+			c := make([]byte, nr)
+			copy(c, buf[:nr])
+			p.Output <- c
 		}
 		if err != nil {
 			if err == io.EOF {
@@ -68,4 +69,5 @@ func (p *Pane) outputPipe() {
 
 	}
 	close(p.Output)
+	p.Output = nil
 }
