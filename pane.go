@@ -24,12 +24,12 @@ type Pane struct {
 
 func CreatePane(width, height uint16, prog string, args ...string) *Pane {
 	return &Pane{
-    Cmd: exec.Command(prog, args...),
-    cx: 0, cy: 0,
-    prog: prog, args: args,
-    width: width, height: height,
-    Pty: nil, output: nil, Output: nil,
-  }
+		Cmd: exec.Command(prog, args...),
+		cx:  0, cy: 0,
+		prog: prog, args: args,
+		width: width, height: height,
+		Pty: nil, output: nil, Output: nil,
+	}
 }
 
 func (p *Pane) Start() error {
@@ -37,9 +37,9 @@ func (p *Pane) Start() error {
 	if err != nil {
 		panic(err)
 	}
-  if err = pty.Setsize(pterm, p.width, p.height); err != nil {
-    panic(err)
-  }
+	if err = pty.Setsize(pterm, p.height, p.width); err != nil {
+		panic(err)
+	}
 	p.Pty = pterm
 	p.Output = make(chan []byte, 20)
 	p.output = bufio.NewReader(p.Pty)
