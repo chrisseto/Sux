@@ -1,23 +1,22 @@
 package main
 
 import (
-	"os"
-	// "io"
-	// "bytes"
+	"bufio"
 	"github.com/kr/pty"
+	"io"
+	"os"
 	"os/exec"
-	// "strings"
-	"syscall"
 )
 
 type Cmd struct {
 	*exec.Cmd
 	Pty    *os.File
+	output io.Reader
 	Output chan []byte
 }
 
 func Command(prog string, args ...string) *Cmd {
-	return &Cmd{exec.Command(prog, args...), nil, nil}
+	return &Cmd{exec.Command(prog, args...), nil, nil, nil}
 }
 
 func (c *Cmd) Start() error {
@@ -26,6 +25,8 @@ func (c *Cmd) Start() error {
 		return err
 	}
 	c.Pty = pterm
+	c.Output = make(chan []byte, 20)
+	c.output = bufio.NewReader(c.Pty)
 	go c.outputPipe()
 	return nil
 }
@@ -35,18 +36,19 @@ func (c *Cmd) Close() error {
 }
 
 func (c *Cmd) outputPipe() {
-	fd := (int)(c.Pty.Fd())
-	buf := make([]byte, 128)
-	c.Output = make(chan []byte)
-	syscall.SetNonblock(fd, true)
-	defer syscall.SetNonblock(fd, false)
-
+	buf := make([]byte, 32*1024)
 	for {
-		n, err := syscall.Read(fd, buf)
-		if err == syscall.EAGAIN || err == syscall.EWOULDBLOCK {
-			continue
+		nr, err := c.output.Read(buf)
+		if nr > 0 {
+			c.Output <- buf[0:nr]
 		}
-		c.Output <- buf[:n]
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			panic(err)
+		}
+
 	}
 	close(c.Output)
 }

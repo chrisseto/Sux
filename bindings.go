@@ -1,14 +1,14 @@
 package main
 
 import (
-  // "io"
-  // "os"
-  // "fmt"
+	// "io"
+	// "os"
+	// "fmt"
 	"github.com/nsf/termbox-go"
 )
 
 var (
-	leader                 = termbox.KeyCtrlC
+	leader                 = termbox.KeyCtrlB
 	outstandingLeaderPress = false
 )
 
@@ -17,7 +17,7 @@ func leaderPress() bool {
 	case termbox.EventKey:
 		switch ev.Key {
 		case termbox.KeyCtrlC:
-      InputChan <- nil
+			InputChan <- nil
 			return true
 		case termbox.KeyArrowRight:
 			NextCommand()
@@ -31,7 +31,6 @@ func leaderPress() bool {
 }
 
 func InputLoop() {
-  // go io.Copy(SelectedCommand.Pty, os.Stdout)
 	var raw = make([]byte, 1)
 	for {
 		switch ev := termbox.PollRawEvent(raw); ev.Type {

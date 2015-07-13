@@ -2,9 +2,6 @@ package main
 
 import (
 	"flag"
-	// "io"
-	// "os"
-	// "syscall"
 	"fmt"
 	"github.com/nsf/termbox-go"
 )
@@ -26,13 +23,15 @@ func main() {
 
 	InputChan = make(chan error)
 
-	MaybePanic(StartCommands())
 	MaybePanic(termbox.Init())
 
 	defer termbox.Close()
 	defer EndCommands()
 
 	go InputLoop()
+	go OutputLoop()
+
+	MaybePanic(StartCommands())
 
 	<-InputChan
 }
