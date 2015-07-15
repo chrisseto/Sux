@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-  "fmt"
 )
 
 type Cell struct {
@@ -36,7 +35,7 @@ func CreatePane(width, height uint16, prog string, args ...string) *Pane {
 	return &Pane{
 		Cmd: exec.Command(prog, args...),
 		cx:  0, cy: 0,
-		sx:  0, sy: 0,
+		sx: 0, sy: 0,
 		Prog: prog, args: args,
 		width: width, height: height,
 		Pty: nil, output: nil, Output: nil,
@@ -79,8 +78,6 @@ func (p *Pane) Height() uint16 {
 
 func (p *Pane) outputPipe() {
 	buf := make([]byte, 32*1024)
-  f, _ := os.Create("outpipe.log")
-  defer f.Close()
 	for {
 		nr, err := p.output.Read(buf)
 		if nr > 0 {
@@ -89,25 +86,24 @@ func (p *Pane) outputPipe() {
 
 			for _, char := range buf[:nr] {
 				switch char {
-        case 0xA:
-          p.sy++
+				case 0xA:
+					p.sy++
 					p.cells = append(p.cells, nil)
-					*row = p.cells[p.sy]
+					row = &p.cells[p.sy]
 				case 0xD:
 					p.sx = 0
 				case 0x8:
-          p.sx--
+					p.sx--
 					*row = (*row)[:p.sx]
-          c := Cell{termbox.Cell{' ', 0x0, 0x0}, p.sx, p.sy}
-          b = append(b, c)
+					c := Cell{termbox.Cell{' ', 0x0, 0x0}, p.sx, p.sy}
+					b = append(b, c)
 				default:
-          c := Cell{termbox.Cell{rune(char), 0x0, 0x0}, p.sx, p.sy}
+					c := Cell{termbox.Cell{rune(char), 0x0, 0x0}, p.sx, p.sy}
 					*row = append(*row, c.Cell)
-          b = append(b, c)
+					b = append(b, c)
 					p.sx++
 				}
 			}
-      fmt.Fprintf(f, "nr: %v\nbuf: %v\n%+v\n", nr, buf[:nr], b)
 
 			p.CellOutput <- b
 		}

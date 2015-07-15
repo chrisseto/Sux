@@ -3,10 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/nsf/termbox-go"
-	"os"
 	"strings"
-  "fmt"
-	// "strconv"
 )
 
 var (
@@ -43,16 +40,12 @@ func RunPanes() error {
 
 func OutputLoop() {
 	selected := <-selectChan
-  f, _ := os.Create("log.log")
-  defer f.Close()
 	WriteStatusBar(selected.Prog)
 	termbox.Flush()
 	for {
 		select {
 		case cells := <-selected.CellOutput:
-      fmt.Fprintf(f, "%v", cells)
 			for _, cell := range cells {
-        fmt.Fprintf(f, "[%v, %v, %#U]\n", cell.x, cell.y, cell.Ch)
 				termbox.SetCell(cell.x, cell.y, cell.Ch, cell.Fg, cell.Bg)
 			}
 			WriteStatusBar(selected.Prog)
