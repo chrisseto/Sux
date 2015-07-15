@@ -51,7 +51,7 @@ func (p *Pane) Start() error {
 	p.Pty = pterm
 	p.ShouldRedraw = make(chan struct{})
 	p.cells = make([][]termbox.Cell, 1, p.height)
-	p.cells[0] = make([]termbox.Cell, 0, p.width)
+	p.cells[0] = make([]termbox.Cell, p.width)
 	go p.outputPipe()
 	return nil
 }
@@ -61,6 +61,9 @@ func (p *Pane) Close() error {
 }
 
 func (p *Pane) Cells() [][]termbox.Cell {
+	if len(p.cells) > int(p.height) {
+		return p.cells[len(p.cells)-int(p.height):]
+	}
 	return p.cells
 }
 
@@ -70,6 +73,14 @@ func (p *Pane) Width() uint16 {
 
 func (p *Pane) Height() uint16 {
 	return p.height
+}
+
+func (p *Pane) Redraw() {
+	for y, line := range p.Cells() {
+		for x, cell := range line {
+			termbox.SetCell(x, y, cell.Ch, cell.Fg, cell.Bg)
+		}
+	}
 }
 
 func (p *Pane) outputPipe() {
@@ -84,7 +95,7 @@ func (p *Pane) outputPipe() {
 				switch char {
 				case 0xA:
 					p.sy++
-					p.cells = append(p.cells, make([]termbox.Cell, 0, p.width))
+					p.cells = append(p.cells, make([]termbox.Cell, p.width))
 					row = &p.cells[p.sy]
 				case 0xD:
 					p.sx = 0
@@ -93,7 +104,7 @@ func (p *Pane) outputPipe() {
 					(*row)[p.sx] = termbox.Cell{' ', 0x0, 0x0}
 				default:
 					p.sx++
-					*row = append(*row, termbox.Cell{rune(char), 0x0, 0x0})
+					(*row)[p.sx] = termbox.Cell{rune(char), 0x0, 0x0}
 				}
 			}
 
