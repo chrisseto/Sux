@@ -94,8 +94,8 @@ func (p *Pane) outputPipe() {
 					p.sx = 0
 				case 0x8:
 					p.sx--
-					*row = (*row)[:p.sx]
 					c := Cell{termbox.Cell{' ', 0x0, 0x0}, p.sx, p.sy}
+					(*row)[p.sx] = c.Cell
 					b = append(b, c)
 				default:
 					c := Cell{termbox.Cell{rune(char), 0x0, 0x0}, p.sx, p.sy}
