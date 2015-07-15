@@ -118,6 +118,4 @@ func (p *Pane) outputPipe() {
 		}
 
 	}
-	close(p.ShouldRedraw)
-	p.ShouldRedraw = nil
 }
