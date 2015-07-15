@@ -45,16 +45,12 @@ func OutputLoop() {
 	termbox.Flush()
 	for {
 		select {
-		// case cells := <-selected.CellOutput:
-		case <-selected.CellOutput:
+		case <-selected.ShouldRedraw:
 			for y, line := range SelectedPane.Cells() {
 				for x, cell := range line {
 					termbox.SetCell(x, y, cell.Ch, cell.Fg, cell.Bg)
 				}
 			}
-			// for _, cell := range cells {
-			// 	termbox.SetCell(cell.x, cell.y, cell.Ch, cell.Fg, cell.Bg)
-			// }
 			WriteStatusBar(selected)
 			termbox.Flush()
 		case selected = <-selectChan:

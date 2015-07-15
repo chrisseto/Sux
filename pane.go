@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"github.com/chrisseto/pty"
 	"github.com/nsf/termbox-go"
 	"io"
@@ -24,11 +23,10 @@ type Pane struct {
 	Prog string
 	Args []string
 
-	Pty        *os.File
-	output     io.Reader
-	cells      [][]termbox.Cell
-	Output     chan []byte
-	CellOutput chan []Cell
+	Pty          *os.File
+	output       io.Reader
+	cells        [][]termbox.Cell
+	ShouldRedraw chan struct{}
 }
 
 func CreatePane(width, height uint16, prog string, args ...string) *Pane {
@@ -38,7 +36,7 @@ func CreatePane(width, height uint16, prog string, args ...string) *Pane {
 		sx: 0, sy: 0,
 		Prog: prog, Args: args,
 		width: width, height: height,
-		Pty: nil, output: nil, Output: nil,
+		Pty: nil, ShouldRedraw: nil,
 	}
 }
 
@@ -51,9 +49,7 @@ func (p *Pane) Start() error {
 		panic(err)
 	}
 	p.Pty = pterm
-	p.Output = make(chan []byte, 32)
-	p.CellOutput = make(chan []Cell, 32)
-	p.output = bufio.NewReader(p.Pty)
+	p.ShouldRedraw = make(chan struct{})
 	p.cells = make([][]termbox.Cell, 1, p.height)
 	p.cells[0] = make([]termbox.Cell, 0, p.width)
 	go p.outputPipe()
@@ -78,34 +74,30 @@ func (p *Pane) Height() uint16 {
 
 func (p *Pane) outputPipe() {
 	buf := make([]byte, 32*1024)
+
 	for {
-		nr, err := p.output.Read(buf)
+		nr, err := p.Pty.Read(buf)
 		if nr > 0 {
-			b := make([]Cell, 0, nr)
 			row := &p.cells[p.sy]
 
 			for _, char := range buf[:nr] {
 				switch char {
 				case 0xA:
 					p.sy++
-					p.cells = append(p.cells, nil)
+					p.cells = append(p.cells, make([]termbox.Cell, 0, p.width))
 					row = &p.cells[p.sy]
 				case 0xD:
 					p.sx = 0
 				case 0x8:
 					p.sx--
-					c := Cell{termbox.Cell{' ', 0x0, 0x0}, p.sx, p.sy}
-					(*row)[p.sx] = c.Cell
-					b = append(b, c)
+					(*row)[p.sx] = termbox.Cell{' ', 0x0, 0x0}
 				default:
-					c := Cell{termbox.Cell{rune(char), 0x0, 0x0}, p.sx, p.sy}
-					*row = append(*row, c.Cell)
-					b = append(b, c)
 					p.sx++
+					*row = append(*row, termbox.Cell{rune(char), 0x0, 0x0})
 				}
 			}
 
-			p.CellOutput <- b
+			p.ShouldRedraw <- struct{}{}
 		}
 		if err != nil {
 			if err == io.EOF {
@@ -115,6 +107,6 @@ func (p *Pane) outputPipe() {
 		}
 
 	}
-	close(p.Output)
-	p.Output = nil
+	close(p.ShouldRedraw)
+	p.ShouldRedraw = nil
 }
