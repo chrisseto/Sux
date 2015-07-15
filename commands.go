@@ -94,7 +94,7 @@ func EndPanes() {
 
 func WriteStatusBar(pane *Pane) {
 	width, height := termbox.Size()
-	statusString := fmt.Sprintf("Pane #%d Command %s Args %v", selectedIndex, pane.Prog, pane.Args)
+	statusString := fmt.Sprintf("Pane #%d Command %s Args %v Mode %d", selectedIndex, pane.Prog, pane.Args, currentMode)
 	i := 0
 	for _, char := range statusString {
 		termbox.SetCell(i, height-1, char, termbox.ColorBlack, termbox.ColorGreen)

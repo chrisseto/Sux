@@ -19,6 +19,7 @@ type Pane struct {
 	cx, cy        int
 	sx, sy        int
 	width, height uint16
+	scrollOffset  int
 
 	Prog string
 	Args []string
@@ -34,7 +35,8 @@ func CreatePane(width, height uint16, prog string, args ...string) *Pane {
 		Cmd: exec.Command(prog, args...),
 		cx:  0, cy: 0,
 		sx: 0, sy: 0,
-		Prog: prog, Args: args,
+		scrollOffset: 0,
+		Prog:         prog, Args: args,
 		width: width, height: height,
 		Pty: nil, ShouldRedraw: nil,
 	}
@@ -61,8 +63,8 @@ func (p *Pane) Close() error {
 }
 
 func (p *Pane) Cells() [][]termbox.Cell {
-	if len(p.cells) > int(p.height) {
-		return p.cells[len(p.cells)-int(p.height):]
+	if offset := len(p.cells) + p.scrollOffset - int(p.height); offset > 0 {
+		return p.cells[offset:]
 	}
 	return p.cells
 }
@@ -73,6 +75,14 @@ func (p *Pane) Width() uint16 {
 
 func (p *Pane) Height() uint16 {
 	return p.height
+}
+
+func (p *Pane) Scroll(far int) {
+	p.scrollOffset += far
+	select {
+	case p.ShouldRedraw <- struct{}{}:
+	default: //Failed to send, a redraw is already happening
+	}
 }
 
 func (p *Pane) Redraw() {

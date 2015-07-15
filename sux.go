@@ -25,6 +25,8 @@ func main() {
 
 	MaybePanic(termbox.Init())
 
+	termbox.SetInputMode(termbox.InputEsc)
+
 	defer termbox.Close()
 	defer EndPanes()
 
