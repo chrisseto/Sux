@@ -22,7 +22,7 @@ type Pane struct {
 	width, height uint16
 
 	Prog string
-	args []string
+	Args []string
 
 	Pty        *os.File
 	output     io.Reader
@@ -36,7 +36,7 @@ func CreatePane(width, height uint16, prog string, args ...string) *Pane {
 		Cmd: exec.Command(prog, args...),
 		cx:  0, cy: 0,
 		sx: 0, sy: 0,
-		Prog: prog, args: args,
+		Prog: prog, Args: args,
 		width: width, height: height,
 		Pty: nil, output: nil, Output: nil,
 	}

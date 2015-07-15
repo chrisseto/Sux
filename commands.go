@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/nsf/termbox-go"
 	"strings"
 )
@@ -40,7 +41,7 @@ func RunPanes() error {
 
 func OutputLoop() {
 	selected := <-selectChan
-	WriteStatusBar(selected.Prog)
+	WriteStatusBar(selected)
 	termbox.Flush()
 	for {
 		select {
@@ -48,7 +49,7 @@ func OutputLoop() {
 			for _, cell := range cells {
 				termbox.SetCell(cell.x, cell.y, cell.Ch, cell.Fg, cell.Bg)
 			}
-			WriteStatusBar(selected.Prog)
+			WriteStatusBar(selected)
 			termbox.Flush()
 		case selected = <-selectChan:
 		case <-quitChan:
@@ -65,8 +66,7 @@ func setPane(index int) {
 			termbox.SetCell(x, y, cell.Ch, cell.Fg, cell.Bg)
 		}
 	}
-	WriteStatusBar(SelectedPane.Prog)
-	// termbox.Sync()
+	WriteStatusBar(SelectedPane)
 	termbox.Flush()
 	selectChan <- SelectedPane
 }
@@ -94,16 +94,18 @@ func EndPanes() {
 	}
 }
 
-func WriteStatusBar(prog string) {
+func WriteStatusBar(pane *Pane) {
 	width, height := termbox.Size()
+	statusString := fmt.Sprintf("Pane #%d Command %s Args %v", selectedIndex, pane.Prog, pane.Args)
 	i := 0
-	for _, char := range prog {
-		i++
+	for _, char := range statusString {
 		termbox.SetCell(i, height-1, char, termbox.ColorBlack, termbox.ColorGreen)
+		i++
+		if i > width {
+			return
+		}
 	}
 	for ; i < width; i++ {
 		termbox.SetCell(i, height-1, ' ', termbox.ColorBlack, termbox.ColorGreen)
 	}
-	// termbox.HideCursor()
-	// termbox.Flush()
 }
