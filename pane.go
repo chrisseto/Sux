@@ -24,10 +24,9 @@ type Pane struct {
 	Prog string
 	Args []string
 
-	Pty          *os.File
-	output       io.Reader
-	cells        [][]termbox.Cell
-	ShouldRedraw chan struct{}
+	Pty    *os.File
+	output io.Reader
+	cells  [][]termbox.Cell
 }
 
 func CreatePane(width, height uint16, prog string, args ...string) *Pane {
@@ -38,7 +37,7 @@ func CreatePane(width, height uint16, prog string, args ...string) *Pane {
 		scrollOffset: 0,
 		Prog:         prog, Args: args,
 		width: width, height: height,
-		Pty: nil, ShouldRedraw: nil,
+		Pty: nil,
 	}
 }
 
@@ -51,7 +50,6 @@ func (p *Pane) Start() error {
 		panic(err)
 	}
 	p.Pty = pterm
-	p.ShouldRedraw = make(chan struct{})
 	p.cells = make([][]termbox.Cell, 1, p.height)
 	p.cells[0] = make([]termbox.Cell, p.width)
 	go p.outputPipe()
@@ -80,7 +78,7 @@ func (p *Pane) Height() uint16 {
 func (p *Pane) Scroll(far int) {
 	p.scrollOffset += far
 	select {
-	case p.ShouldRedraw <- struct{}{}:
+	case Redraw <- struct{}{}:
 	default: //Failed to send, a redraw is already happening
 	}
 }
@@ -118,7 +116,7 @@ func (p *Pane) outputPipe() {
 				}
 			}
 
-			p.ShouldRedraw <- struct{}{}
+			Redraw <- struct{}{}
 		}
 		if err != nil {
 			if err == io.EOF {

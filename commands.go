@@ -45,7 +45,7 @@ func OutputLoop() {
 	termbox.Flush()
 	for {
 		select {
-		case <-selected.ShouldRedraw:
+		case <-Redraw:
 			selected.Redraw()
 			WriteStatusBar(selected)
 			termbox.Flush()
@@ -94,7 +94,7 @@ func EndPanes() {
 
 func WriteStatusBar(pane *Pane) {
 	width, height := termbox.Size()
-	statusString := fmt.Sprintf("Pane #%d Command %s Args %v Mode %d", selectedIndex, pane.Prog, pane.Args, currentMode)
+	statusString := fmt.Sprintf("Pane #%d Command %s Args %v Mode %s", selectedIndex, pane.Prog, pane.Args, CurrentMode.Name)
 	i := 0
 	for _, char := range statusString {
 		termbox.SetCell(i, height-1, char, termbox.ColorBlack, termbox.ColorGreen)

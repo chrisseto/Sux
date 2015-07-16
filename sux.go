@@ -12,7 +12,10 @@ func MaybePanic(err error) {
 	}
 }
 
-var InputChan chan error
+var (
+	Quit   chan struct{}
+	Redraw chan struct{}
+)
 
 func main() {
 	flag.Parse()
@@ -21,7 +24,11 @@ func main() {
 		return
 	}
 
-	InputChan = make(chan error)
+	DefaultMode = InputMode
+	CurrentMode = DefaultMode
+
+	Quit = make(chan struct{})
+	Redraw = make(chan struct{})
 
 	MaybePanic(termbox.Init())
 
@@ -35,5 +42,5 @@ func main() {
 
 	MaybePanic(RunPanes())
 
-	<-InputChan
+	<-Quit
 }
