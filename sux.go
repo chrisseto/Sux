@@ -20,7 +20,8 @@ var (
 func main() {
 	flag.Parse()
 	if len(flag.Args()) == 0 {
-		fmt.Println("Given 0 commands to run.")
+		fmt.Println("sux: no commands given")
+		fmt.Println("Usage sux [command ...]")
 		return
 	}
 
