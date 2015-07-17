@@ -71,7 +71,10 @@ func CommandModeHandler(raw []byte, ev termbox.Event) {
 	switch ev.Key {
 	case termbox.KeyCtrlC:
 		Quit <- struct{}{}
-	default:
-		SetMode(&DefaultMode)
+	case termbox.KeyArrowRight:
+		NextPane()
+	case termbox.KeyArrowLeft:
+		PrevPane()
 	}
+	SetMode(&DefaultMode)
 }
