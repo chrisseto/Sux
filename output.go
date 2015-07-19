@@ -48,6 +48,7 @@ func OutputLoop() {
 		case <-Redraw:
 			selected.Redraw()
 			WriteStatusBar(selected)
+			termbox.SetCursor(selected.Cursor())
 			termbox.Flush()
 		case selected = <-selectChan:
 		case <-quitChan:
