@@ -85,6 +85,10 @@ func (p *Parser) Result() *AnsiEscapeCode {
 	return p.result
 }
 
+func (p *Parser) State() State {
+	return p.state
+}
+
 func NewParser() Parser {
 	return Parser{nil, 0x0, make([]byte, 0, 16), nil}
 }
