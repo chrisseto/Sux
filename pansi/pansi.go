@@ -4,11 +4,6 @@
 //http://www.vt100.net/emu/dec_ansi_parser
 package pansi
 
-// import (
-// 	"strconv"
-// 	"strings"
-// )
-
 type AnsiEscapeType int
 
 const (
@@ -40,7 +35,8 @@ type (
 
 	AnsiEscapeCode struct {
 		Type   AnsiEscapeType
-		Params []byte
+		Values []int
+		// Params []byte
 	}
 
 	Parser struct {
@@ -49,11 +45,6 @@ type (
 		params []byte
 		result *AnsiEscapeCode
 	}
-)
-
-var (
-	actionNull  = func(_ *Parser) {}
-	actionClear = func(p *Parser) { p.Clear() }
 )
 
 func (s nullState) Entry(_ *Parser)  {}
@@ -66,8 +57,7 @@ func (p *Parser) Clear() {
 	p.state = nil
 }
 
-func (p *Parser) Feed(r rune) {
-	b := byte(r)
+func (p *Parser) Feed(b byte) {
 	switch b {
 	case 0x1B:
 		p.state, p.result = &escape{}, nil
@@ -76,6 +66,10 @@ func (p *Parser) Feed(r rune) {
 			p.state, p.result = p.state.Execute(p, b)
 		}
 	}
+}
+
+func (p *Parser) FeedRune(r rune) {
+	p.Feed(byte(r))
 }
 
 func (p *Parser) Collect(b byte) {
@@ -97,10 +91,7 @@ func NewParser() Parser {
 func Parse(s string) *AnsiEscapeCode {
 	p := NewParser()
 	for _, ch := range s {
-		p.Feed(ch)
-		// if p.state == Invalid {
-		// 	break
-		// }
+		p.FeedRune(ch)
 	}
 	return p.Result()
 }

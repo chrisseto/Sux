@@ -1,42 +1,32 @@
 package pansi
 
-// var (
-// csiEntry = &State{
-// 	Entry:   actionClear,
-// 	Execute: csiEntryExecute,
-// 	Exit:    actionNull,
-// }
-
-// csiIntermediate = &State{
-// 	Entry:   actionNull,
-// 	Execute: csiIntermediateExecute,
-// 	Exit:    actionNull,
-// }
-
-// csiIgnore = &State{
-// 	Entry:   actionNull,
-// 	Execute: csiIgnoreExecute,
-// 	Exit:    actionNull,
-// }
-
-// csiParam = &State{
-// 	Entry:   actionNull,
-// 	Execute: csiParamExecute,
-// 	Exit:    actionNull,
-// }
-// )
+import (
+	"strconv"
+	"strings"
+)
 
 type (
 	csiEntry        struct{ clearEntry }
 	csiIgnore       struct{ nullState }
 	csiParam        struct{ nullState }
 	csiIntermediate struct{ nullState }
+	csiDispatch     struct{ nullState }
 )
 
 func (p *Parser) csiDispatch(b byte) *AnsiEscapeCode {
 	switch b {
 	case 0x6D:
-		return &AnsiEscapeCode{SetGraphicMode, p.params}
+		spl := strings.Split(string(p.params), ";")
+		// var ok bool
+		var err error
+		values := make([]int, len(spl))
+		for i, x := range spl {
+			values[i], err = strconv.Atoi(x)
+			if err != nil {
+				return nil
+			}
+		}
+		return &AnsiEscapeCode{SetGraphicMode, values}
 	default:
 		return nil
 	}
@@ -76,7 +66,7 @@ func (s *csiParam) Execute(p *Parser, b byte) (State, *AnsiEscapeCode) {
 	case b >= 0x3C && b <= 0x3F:
 		return &csiIgnore{}, nil
 	case b >= 0x40 && b <= 0x7E:
-		return nil, nil
+		return nil, p.csiDispatch(b)
 	default:
 		return nil, nil
 	}
@@ -108,16 +98,3 @@ func (s *csiIgnore) Execute(p *Parser, b byte) (State, *AnsiEscapeCode) {
 		return nil, nil
 	}
 }
-
-// func csiIgnoreExecute(p *Parser, b byte) (*State, *AnsiEscapeCode) {
-// 	switch {
-// 	case b == 0x7F:
-// 		fallthrough
-// 	case b >= 0x20 && b <= 0x3F:
-// 		return csiIgnore, nil
-// 	case b >= 0x40 && b <= 0x7E:
-// 		return nil, nil
-// 	default:
-// 		return nil, nil
-// 	}
-// }
