@@ -97,7 +97,6 @@ func (p *Pane) Cursor() (int, int) {
 func (p *Pane) outputPipe() {
 	parser := pansi.NewParser()
 	buf := make([]byte, 32*1024)
-
 	for {
 		nr, err := p.Pty.Read(buf)
 		if nr > 0 {
@@ -115,6 +114,7 @@ func (p *Pane) outputPipe() {
 				}
 
 				switch char {
+				case 0x7: //Terminal Bell. Skip for the moment
 				case 0xA:
 					p.sy++
 					p.cy++
@@ -124,9 +124,9 @@ func (p *Pane) outputPipe() {
 					p.sx = 0
 					p.cx = 0
 				case 0x8:
-					(*row)[p.sx] = termbox.Cell{' ', p.fg, p.bg}
 					p.sx--
 					p.cx--
+					(*row)[p.sx] = termbox.Cell{' ', p.fg, p.bg}
 				default:
 					(*row)[p.sx] = termbox.Cell{rune(char), p.fg, p.bg}
 					p.sx++
@@ -160,6 +160,11 @@ func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
 		p.cx--
 	case pansi.CursorForward:
 		p.cx++
+	case pansi.EraseLine:
+		row := &p.cells[p.sy]
+		for i := p.cx; i < len(*row); i++ {
+			(*row)[i] = termbox.Cell{' ', p.fg, p.bg}
+		}
 	}
 }
 
