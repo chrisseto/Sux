@@ -34,6 +34,7 @@ func main() {
 	MaybePanic(termbox.Init())
 
 	termbox.SetInputMode(termbox.InputEsc)
+	termbox.SetOutputMode(termbox.Output256)
 
 	defer termbox.Close()
 	defer EndPanes()
