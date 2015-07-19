@@ -14,6 +14,7 @@ type Pane struct {
 
 	cx, cy        int
 	sx, sy        int
+	fg, bg        termbox.Attribute
 	width, height uint16
 	scrollOffset  int
 
@@ -30,6 +31,7 @@ func CreatePane(width, height uint16, prog string, args ...string) *Pane {
 		Cmd: exec.Command(prog, args...),
 		cx:  0, cy: 0,
 		sx: 0, sy: 0,
+		fg: 0, bg: 0,
 		scrollOffset: 0,
 		Prog:         prog, Args: args,
 		width: width, height: height,
@@ -93,7 +95,6 @@ func (p *Pane) Cursor() (int, int) {
 }
 
 func (p *Pane) outputPipe() {
-	fg, bg := 0x0, 0x0
 	parser := pansi.NewParser()
 	buf := make([]byte, 32*1024)
 
@@ -108,11 +109,7 @@ func (p *Pane) outputPipe() {
 					continue
 				}
 				if res := parser.Result(); res != nil {
-					if len(res.Values) == 1 {
-						fg, bg = 0x0, 0x0
-					} else if res.Values[0] == 38 && res.Values[1] == 5 {
-						fg = res.Values[2] + 1
-					}
+					p.handleEscapeCode(res)
 					parser.Clear()
 					continue
 				}
@@ -127,11 +124,11 @@ func (p *Pane) outputPipe() {
 					p.sx = 0
 					p.cx = 0
 				case 0x8:
-					(*row)[p.sx] = termbox.Cell{' ', termbox.Attribute(fg), termbox.Attribute(bg)}
+					(*row)[p.sx] = termbox.Cell{' ', p.fg, p.bg}
 					p.sx--
 					p.cx--
 				default:
-					(*row)[p.sx] = termbox.Cell{rune(char), termbox.Attribute(fg), termbox.Attribute(bg)}
+					(*row)[p.sx] = termbox.Cell{rune(char), p.fg, p.bg}
 					p.sx++
 					p.cx++
 				}
@@ -146,5 +143,51 @@ func (p *Pane) outputPipe() {
 			panic(err)
 		}
 
+	}
+}
+
+func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
+	switch c.Type {
+	case pansi.SetGraphicMode:
+		p.SetGraphicMode(c.Values)
+	case pansi.CursorPosition:
+		p.cx, p.cy = c.Values[1], c.Values[2]
+	case pansi.CursorUp:
+		p.cy--
+	case pansi.CursorDown:
+		p.cy++
+	case pansi.CursorBackward:
+		p.cx--
+	case pansi.CursorForward:
+		p.cx++
+	}
+}
+
+func (p *Pane) SetGraphicMode(vals []int) {
+	for i := 0; i < len(vals); i++ {
+		switch vals[i] {
+		case 0:
+			p.fg, p.bg = 0, 0
+		case 1:
+			p.fg |= termbox.AttrBold
+		case 38:
+			i++
+			switch vals[i] {
+			case 5:
+				i++
+				p.fg = termbox.Attribute(vals[i] + 1)
+			case 2:
+				i += 3 //TODO
+			}
+		case 48:
+			i++
+			switch vals[i] {
+			case 5:
+				i++
+				p.bg = termbox.Attribute(vals[i] + 1)
+			case 2:
+				i += 3 //TODO
+			}
+		}
 	}
 }
