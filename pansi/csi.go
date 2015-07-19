@@ -14,22 +14,42 @@ type (
 )
 
 func (p *Parser) csiDispatch(b byte) *AnsiEscapeCode {
-	switch b {
-	case 0x6D:
+	var err error
+	var t AnsiEscapeType
+	var values []int
+	if len(p.params) > 1 {
 		spl := strings.Split(string(p.params), ";")
-		// var ok bool
-		var err error
-		values := make([]int, len(spl))
+		values = make([]int, len(spl))
 		for i, x := range spl {
 			values[i], err = strconv.Atoi(x)
 			if err != nil {
 				return nil
 			}
 		}
-		return &AnsiEscapeCode{SetGraphicMode, values}
+	} else {
+		values = []int{}
+	}
+	switch b {
+	case 0x6D:
+		t = SetGraphicMode
+	case 0x66:
+		fallthrough
+	case 0x48:
+		t = CursorPosition
+	case 0x41:
+		t = CursorUp
+	case 0x42:
+		t = CursorDown
+	case 0x43:
+		t = CursorForward
+	case 0x44:
+		t = CursorBackward
+	case 0x4B:
+		t = EraseLine
 	default:
 		return nil
 	}
+	return &AnsiEscapeCode{t, values}
 }
 
 func (s *csiEntry) Execute(p *Parser, b byte) (State, *AnsiEscapeCode) {
@@ -47,6 +67,8 @@ func (s *csiEntry) Execute(p *Parser, b byte) (State, *AnsiEscapeCode) {
 	case b >= 0x3C && b <= 0x3F:
 		p.Collect(b)
 		return &csiParam{}, nil
+	case b >= 0x40 && b <= 0x7E:
+		return nil, p.csiDispatch(b)
 	default:
 		return nil, nil
 	}

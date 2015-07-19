@@ -23,6 +23,8 @@ const (
 	SetKeyboardStrings
 )
 
+//An interface representing the State (http://www.vt100.net/emu/vt500_parser.svg)
+//of the current parser.
 type State interface {
 	Entry(*Parser)
 	Execute(*Parser, byte) (State, *AnsiEscapeCode)

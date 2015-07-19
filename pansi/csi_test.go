@@ -80,6 +80,12 @@ func TestColorCodeString(t *testing.T) {
 	assert.Equal(t, res.Values, []int{38, 5, 49}, "res.Values got borked")
 }
 
+func TestEraseLine(t *testing.T) {
+	res := Parse("[K")
+	assert.NotNil(t, res, "p.Result() should not be nil")
+	assert.Equal(t, res.Type, EraseLine, "res.Type should be EraseLine")
+}
+
 func BenchmarkEscapeState(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		p := NewParser()
