@@ -9,11 +9,6 @@ import (
 	"os/exec"
 )
 
-type Cell struct {
-	termbox.Cell
-	x, y int
-}
-
 type Pane struct {
 	*exec.Cmd
 

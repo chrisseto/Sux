@@ -60,11 +60,7 @@ func OutputLoop() {
 func setPane(index int) {
 	SelectedPane = RunningPanes[index]
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	for y, line := range SelectedPane.Cells() {
-		for x, cell := range line {
-			termbox.SetCell(x, y, cell.Ch, cell.Fg, cell.Bg)
-		}
-	}
+	SelectedPane.Redraw()
 	WriteStatusBar(SelectedPane)
 	termbox.Flush()
 	selectChan <- SelectedPane
@@ -95,7 +91,7 @@ func EndPanes() {
 
 func WriteStatusBar(pane *Pane) {
 	width, height := termbox.Size()
-	statusString := fmt.Sprintf("Pane #%d Command %s Args %v Mode %s", selectedIndex, pane.Prog, pane.Args, CurrentMode.Name)
+	statusString := fmt.Sprintf("Pane #%d Command %s Args %v %s Mode", selectedIndex, pane.Prog, pane.Args, CurrentMode.Name)
 	i := 0
 	for _, char := range statusString {
 		termbox.SetCell(i, height-1, char, termbox.ColorBlack, termbox.ColorGreen)
