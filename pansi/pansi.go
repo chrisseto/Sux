@@ -55,6 +55,7 @@ func (p *Parser) Clear() {
 	p.params = nil
 	p.mode = 0x0
 	p.state = nil
+	p.result = nil
 }
 
 func (p *Parser) Feed(b byte) {
