@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/chrisseto/pty"
+	"github.com/chrisseto/sux/pansi"
 	"github.com/nsf/termbox-go"
 	"io"
 	"os"
@@ -92,6 +93,8 @@ func (p *Pane) Redraw() {
 }
 
 func (p *Pane) outputPipe() {
+	fg, bg := 0x0, 0x0
+	parser := pansi.NewParser()
 	buf := make([]byte, 32*1024)
 
 	for {
@@ -100,6 +103,20 @@ func (p *Pane) outputPipe() {
 			row := &p.cells[p.sy]
 
 			for _, char := range buf[:nr] {
+				parser.Feed(char)
+				if parser.State() != nil {
+					continue
+				}
+				if res := parser.Result(); res != nil {
+					if len(res.Values) == 1 {
+						fg, bg = 0x0, 0x0
+					} else if res.Values[0] == 38 && res.Values[1] == 5 {
+						fg = res.Values[2] + 1
+					}
+					parser.Clear()
+					continue
+				}
+
 				switch char {
 				case 0xA:
 					p.sy++
@@ -109,10 +126,10 @@ func (p *Pane) outputPipe() {
 					p.sx = 0
 				case 0x8:
 					p.sx--
-					(*row)[p.sx] = termbox.Cell{' ', 0x0, 0x0}
+					(*row)[p.sx] = termbox.Cell{' ', termbox.Attribute(fg), termbox.Attribute(bg)}
 				default:
 					p.sx++
-					(*row)[p.sx] = termbox.Cell{rune(char), 0x0, 0x0}
+					(*row)[p.sx] = termbox.Cell{rune(char), termbox.Attribute(fg), termbox.Attribute(bg)}
 				}
 			}
 
