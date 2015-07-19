@@ -90,6 +90,11 @@ func (p *Pane) Redraw() {
 			termbox.SetCell(x, y, cell.Ch, cell.Fg, cell.Bg)
 		}
 	}
+	termbox.SetCursor(p.Cursor())
+}
+
+func (p *Pane) Cursor() (int, int) {
+	return p.cx, p.cy
 }
 
 func (p *Pane) outputPipe() {
@@ -120,16 +125,20 @@ func (p *Pane) outputPipe() {
 				switch char {
 				case 0xA:
 					p.sy++
+					p.cy++
 					p.cells = append(p.cells, make([]termbox.Cell, p.width))
 					row = &p.cells[p.sy]
 				case 0xD:
 					p.sx = 0
+					p.cx = 0
 				case 0x8:
-					p.sx--
 					(*row)[p.sx] = termbox.Cell{' ', termbox.Attribute(fg), termbox.Attribute(bg)}
+					p.sx--
+					p.cx--
 				default:
-					p.sx++
 					(*row)[p.sx] = termbox.Cell{rune(char), termbox.Attribute(fg), termbox.Attribute(bg)}
+					p.sx++
+					p.cx++
 				}
 			}
 

@@ -41,6 +41,7 @@ func RunPanes() error {
 
 func OutputLoop() {
 	selected := <-selectChan
+	selected.Redraw()
 	WriteStatusBar(selected)
 	termbox.Flush()
 	for {
@@ -48,7 +49,6 @@ func OutputLoop() {
 		case <-Redraw:
 			selected.Redraw()
 			WriteStatusBar(selected)
-			termbox.SetCursor(selected.Cursor())
 			termbox.Flush()
 		case selected = <-selectChan:
 		case <-quitChan:
