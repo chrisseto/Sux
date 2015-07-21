@@ -3,12 +3,12 @@ package pansi
 type State int
 
 const (
-	ground State = iota
-	escape
-	csiEntry
-	csiIgnore
-	csiParam
-	csiIntermediate
+	Ground State = iota
+	Escape
+	CsiEntry
+	CsiIgnore
+	CsiParam
+	CsiIntermediate
 )
 
 type Rule struct {
@@ -18,26 +18,26 @@ type Rule struct {
 }
 
 var globalRules = map[byte]Rule{
-	0x1B: Rule{0, 0, clear, escape},
+	0x1B: Rule{0, 0, clear, Escape},
 }
 
 var states = map[State][]Rule{
-	ground: []Rule{},
-	escape: []Rule{
-		Rule{0x5B, 0x5B, noTransition, csiEntry},
+	Ground: []Rule{},
+	Escape: []Rule{
+		Rule{0x5B, 0x5B, noTransition, CsiEntry},
 	},
-	csiEntry: []Rule{
-		Rule{0x3A, 0x3A, noTransition, csiIgnore},
-		Rule{0x20, 0x2F, collect, csiIntermediate},
-		Rule{0x3B, 0x3B, param, csiParam},
-		Rule{0x30, 0x39, param, csiParam},
-		Rule{0x40, 0x7E, csiDispatch, ground},
+	CsiEntry: []Rule{
+		Rule{0x3A, 0x3A, noTransition, CsiIgnore},
+		Rule{0x20, 0x2F, collect, CsiIntermediate},
+		Rule{0x3B, 0x3B, param, CsiParam},
+		Rule{0x30, 0x39, param, CsiParam},
+		Rule{0x40, 0x7E, csiDispatch, Ground},
 	},
-	csiParam: []Rule{
-		Rule{0x20, 0x2F, noTransition, csiIntermediate},
-		Rule{0x3B, 0x3B, param, csiParam},
-		Rule{0x30, 0x39, param, csiParam},
-		Rule{0x3A, 0x3A, noTransition, csiIgnore},
-		Rule{0x40, 0x7E, csiDispatch, ground},
+	CsiParam: []Rule{
+		Rule{0x20, 0x2F, noTransition, CsiIntermediate},
+		Rule{0x3B, 0x3B, param, CsiParam},
+		Rule{0x30, 0x39, param, CsiParam},
+		Rule{0x3A, 0x3A, noTransition, CsiIgnore},
+		Rule{0x40, 0x7E, csiDispatch, Ground},
 	},
 }

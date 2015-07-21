@@ -8,7 +8,7 @@ type Lexer struct {
 }
 
 func NewLexer() Lexer {
-	return Lexer{state: ground}
+	return Lexer{state: Ground}
 }
 
 func (l *Lexer) Result() *AnsiEscapeCode {
@@ -20,7 +20,7 @@ func (l *Lexer) State() State {
 }
 
 func (l *Lexer) Clear() {
-	l.state = ground
+	l.state = Ground
 	l.mode = 0
 	l.params = make([]byte, 0, 15)
 	l.result = nil
