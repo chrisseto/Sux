@@ -20,7 +20,7 @@ var (
 
 	ScrollMode = Mode{
 		Name:        "Scroll",
-		Trigger:     InputTrigger(']'),
+		Trigger:     InputTrigger('['),
 		HandleInput: ScrollModeHandler,
 		SubModes:    nil,
 	}
