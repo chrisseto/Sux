@@ -95,21 +95,23 @@ func (p *Pane) Cursor() (int, int) {
 }
 
 func (p *Pane) outputPipe() {
-	parser := pansi.NewParser()
+	lexer := pansi.NewLexer()
 	buf := make([]byte, 32*1024)
+	// f, _ := os.Create("output.log")
 	for {
 		nr, err := p.Pty.Read(buf)
 		if nr > 0 {
 			row := &p.cells[p.sy]
+			// f.Write(buf[:nr])
 
 			for _, char := range buf[:nr] {
-				parser.Feed(char)
-				if parser.State() != nil {
+				lexer.Feed(char)
+				if lexer.State() != pansi.Ground {
 					continue
 				}
-				if res := parser.Result(); res != nil {
+				if res := lexer.Result(); res != nil {
 					p.handleEscapeCode(res)
-					parser.Clear()
+					lexer.Clear()
 					continue
 				}
 
