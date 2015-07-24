@@ -30,9 +30,9 @@ func CreatePane(width, height uint16, prog string, args ...string) *Pane {
 	return &Pane{
 		Cmd: exec.Command(prog, args...),
 		cx:  0, cy: 0,
-		sx: 0, sy: 0,
 		fg: 0, bg: 0,
 		scrollOffset: 0,
+		drawOffset:   0,
 		Prog:         prog, Args: args,
 		width: width, height: height,
 		Pty: nil,
@@ -59,10 +59,7 @@ func (p *Pane) Close() error {
 }
 
 func (p *Pane) Cells() [][]termbox.Cell {
-	if offset := len(p.cells) + p.scrollOffset - int(p.height); offset > 0 {
-		return p.cells[offset:]
-	}
-	return p.cells
+	return p.cells[p.drawOffset:bound(p.drawOffset+int(p.height), p.drawOffset, len(p.cells))]
 }
 
 func (p *Pane) Width() uint16 {
@@ -74,11 +71,13 @@ func (p *Pane) Height() uint16 {
 }
 
 func (p *Pane) Scroll(far int) {
-	p.scrollOffset += far
-	select {
-	case Redraw <- struct{}{}:
-	default: //Failed to send, a redraw is already happening
-	}
+	// p.scrollOffset += far
+	p.scrollOffset = bound(p.scrollOffset+far, -len(p.cells), 0)
+	Redraw()
+}
+
+func (p *Pane) bottomLine() *[]termbox.Cell {
+	return &p.cells[len(p.cells)-1]
 }
 
 func (p *Pane) Redraw() {
@@ -101,8 +100,7 @@ func (p *Pane) outputPipe() {
 	for {
 		nr, err := p.Pty.Read(buf)
 		if nr > 0 {
-			row := &p.cells[p.sy]
-			// f.Write(buf[:nr])
+			f.Write(buf[:nr])
 
 			for _, char := range buf[:nr] {
 				lexer.Feed(char)
@@ -118,25 +116,28 @@ func (p *Pane) outputPipe() {
 				switch char {
 				case 0x7: //Terminal Bell. Skip for the moment
 				case 0xA:
-					p.sy++
 					p.cy++
 					p.cells = append(p.cells, make([]termbox.Cell, p.width))
-					row = &p.cells[p.sy]
+					row = p.bottomLine()
+					if len(p.cells)-p.drawOffset > int(p.height) {
+						p.drawOffset++
+					}
 				case 0xD:
-					p.sx = 0
-					p.cx = 0
+					x, p.cx = 0, 0
 				case 0x8:
-					p.sx--
-					p.cx--
-					(*row)[p.sx] = termbox.Cell{' ', p.fg, p.bg}
+					if x != 0 {
+						x--
+						p.cx--
+					}
+					(*row)[x] = termbox.Cell{' ', p.fg, p.bg}
 				default:
-					(*row)[p.sx] = termbox.Cell{rune(char), p.fg, p.bg}
-					p.sx++
+					(*row)[x] = termbox.Cell{rune(char), p.fg, p.bg}
+					x++
 					p.cx++
 				}
 			}
 
-			Redraw <- struct{}{}
+			Redraw()
 		}
 		if err != nil {
 			if err == io.EOF {
