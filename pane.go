@@ -198,3 +198,9 @@ func (p *Pane) SetGraphicMode(vals []int) {
 		}
 	}
 }
+
+func (p *Pane) Clear() {
+	p.drawOffset = len(p.cells) - 1
+	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+	Redraw()
+}
