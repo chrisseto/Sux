@@ -17,6 +17,8 @@ var csiDispatchMap = map[byte]AnsiEscapeType{
 	0x44: CursorBackward,
 	0x4A: EraseDisplay,
 	0x4B: EraseLine,
+	0x68: DecPrivateModeSet,
+	0x72: SetBottomTopLines,
 }
 
 func csiDispatch(l *Lexer, b byte) *AnsiEscapeCode {
@@ -41,6 +43,10 @@ func csiDispatch(l *Lexer, b byte) *AnsiEscapeCode {
 	}
 
 	return &AnsiEscapeCode{t, values}
+}
+
+func escDispatch(l *Lexer, b byte) *AnsiEscapeCode {
+	return nil
 }
 
 func noTransition(l *Lexer, b byte) *AnsiEscapeCode {

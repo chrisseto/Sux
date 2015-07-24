@@ -17,6 +17,8 @@ const (
 	SetMode
 	ResetMode
 	SetKeyboardStrings
+	DecPrivateModeSet
+	SetBottomTopLines
 )
 
 type AnsiEscapeCode struct {
