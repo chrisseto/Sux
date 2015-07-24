@@ -14,7 +14,7 @@ func MaybePanic(err error) {
 
 var (
 	Quit   chan struct{}
-	Redraw chan struct{}
+	redraw chan struct{}
 )
 
 func main() {
@@ -29,7 +29,7 @@ func main() {
 	CurrentMode = DefaultMode
 
 	Quit = make(chan struct{})
-	Redraw = make(chan struct{})
+	redraw = make(chan struct{})
 
 	MaybePanic(termbox.Init())
 

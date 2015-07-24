@@ -46,10 +46,7 @@ func SetMode(newMode *Mode) {
 	} else {
 		CurrentMode = *newMode
 	}
-	select {
-	case Redraw <- struct{}{}:
-	default:
-	}
+	Redraw()
 }
 
 func InputModeHandler(raw []byte, ev termbox.Event) {

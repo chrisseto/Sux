@@ -167,6 +167,8 @@ func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
 		for i := p.cx; i < len(*row); i++ {
 			(*row)[i] = termbox.Cell{' ', p.fg, p.bg}
 		}
+	case pansi.EraseDisplay:
+		p.Clear()
 	}
 }
 

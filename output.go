@@ -39,6 +39,13 @@ func RunPanes() error {
 	return nil
 }
 
+func Redraw() {
+	select {
+	case redraw <- struct{}{}:
+	default: //Failed to send, a redraw is already happening
+	}
+}
+
 func OutputLoop() {
 	selected := <-selectChan
 	selected.Redraw()
@@ -46,7 +53,7 @@ func OutputLoop() {
 	termbox.Flush()
 	for {
 		select {
-		case <-Redraw:
+		case <-redraw:
 			selected.Redraw()
 			WriteStatusBar(selected)
 			termbox.Flush()
