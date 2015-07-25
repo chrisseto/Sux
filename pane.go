@@ -89,7 +89,19 @@ func (p *Pane) Redraw() {
 	termbox.SetCursor(p.Cursor())
 }
 
+func bound(val, min, max int) int {
+	if val < min {
+		return min
+	}
+	if val > max {
+		return max
+	}
+	return val
+}
+
 func (p *Pane) Cursor() (int, int) {
+	p.cx = bound(p.cx, 0, int(p.width)-1)
+	p.cy = bound(p.cy, 0, int(p.height)-1)
 	return p.cx, p.cy
 }
 
