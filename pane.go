@@ -116,12 +116,12 @@ func (p *Pane) outputPipe() {
 
 			for _, char := range buf[:nr] {
 				lexer.Feed(char)
-				if lexer.State() != pansi.Ground {
-					continue
-				}
 				if res := lexer.Result(); res != nil {
 					p.handleEscapeCode(res)
 					lexer.Clear()
+					continue
+				}
+				if lexer.State() != pansi.Ground {
 					continue
 				}
 
