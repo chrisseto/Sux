@@ -80,6 +80,15 @@ func (p *Pane) bottomLine() *[]termbox.Cell {
 	return &p.cells[len(p.cells)-1]
 }
 
+func (p *Pane) newLine() *[]termbox.Cell {
+	p.cy++
+	p.cells = append(p.cells, make([]termbox.Cell, p.width))
+	if len(p.cells)-p.drawOffset > int(p.height) {
+		p.drawOffset++
+	}
+	return p.bottomLine()
+}
+
 func (p *Pane) Redraw() {
 	for y, line := range p.Cells() {
 		for x, cell := range line {
@@ -128,12 +137,7 @@ func (p *Pane) outputPipe() {
 				switch char {
 				case 0x7: //Terminal Bell. Skip for the moment
 				case 0xA:
-					p.cy++
-					p.cells = append(p.cells, make([]termbox.Cell, p.width))
-					row = p.bottomLine()
-					if len(p.cells)-p.drawOffset > int(p.height) {
-						p.drawOffset++
-					}
+					row = p.newLine()
 				case 0xD:
 					x, p.cx = 0, 0
 				case 0x8:
