@@ -21,6 +21,10 @@ var csiDispatchMap = map[byte]AnsiEscapeType{
 	0x72: SetBottomTopLines,
 }
 
+var escDispatchMap = map[byte]AnsiEscapeType{
+	0x3D: DECKPAM,
+}
+
 func csiDispatch(l *Lexer, b byte) *AnsiEscapeCode {
 	t, ok := csiDispatchMap[b]
 	if !ok {
@@ -46,7 +50,11 @@ func csiDispatch(l *Lexer, b byte) *AnsiEscapeCode {
 }
 
 func escDispatch(l *Lexer, b byte) *AnsiEscapeCode {
-	return nil
+	t, ok := escDispatchMap[b]
+	if !ok {
+		return nil
+	}
+	return &AnsiEscapeCode{t, nil}
 }
 
 func noTransition(l *Lexer, b byte) *AnsiEscapeCode {
