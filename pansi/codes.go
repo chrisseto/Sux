@@ -19,6 +19,9 @@ const (
 	SetKeyboardStrings
 	DecPrivateModeSet
 	SetBottomTopLines
+	SetUsg0
+	DECKPAM
+	DesignateG0CharacterSet
 )
 
 type AnsiEscapeCode struct {

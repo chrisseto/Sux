@@ -83,3 +83,8 @@ func TestBashHeader(t *testing.T) {
 	res := lexer.Result()
 	assert.Equal(t, res.Type, DecPrivateModeSet)
 }
+
+func TestGesignateG9CharacterSet(t *testing.T) {
+	res := Parse("(B")
+	assert.Equal(t, res.Type, DesignateG0CharacterSet, "%T is not %T; %+v", res.Type, DesignateG0CharacterSet)
+}

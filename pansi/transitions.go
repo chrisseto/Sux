@@ -18,6 +18,7 @@ var csiDispatchMap = map[byte]AnsiEscapeType{
 	0x4A: EraseDisplay,
 	0x4B: EraseLine,
 	0x68: DecPrivateModeSet,
+	0x6C: ResetMode,
 	0x72: SetBottomTopLines,
 }
 
@@ -50,6 +51,17 @@ func csiDispatch(l *Lexer, b byte) *AnsiEscapeCode {
 }
 
 func escDispatch(l *Lexer, b byte) *AnsiEscapeCode {
+	//Special cases
+	switch l.mode {
+	case 0x28:
+		return &AnsiEscapeCode{DesignateG0CharacterSet, []int{int(b)}}
+	case 0x29:
+	case 0x2A:
+	case 0x2B:
+	case 0x2D:
+	case 0x2E:
+	case 0x2F:
+	}
 	t, ok := escDispatchMap[b]
 	if !ok {
 		return nil
