@@ -200,6 +200,8 @@ func (p *Pane) SetGraphicMode(vals []int) {
 			p.fg, p.bg = 0, 0
 		case 1:
 			p.fg |= termbox.AttrBold
+		case 7:
+			p.fg, p.bg = p.bg, p.fg
 		case 38:
 			i++
 			switch vals[i] {
