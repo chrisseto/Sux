@@ -147,6 +147,10 @@ func (p *Pane) outputPipe() {
 					}
 					(*row)[x] = termbox.Cell{' ', p.fg, p.bg}
 				default:
+					if x >= int(p.width) {
+						row = p.newLine()
+						x = 0
+					}
 					(*row)[x] = termbox.Cell{rune(char), p.fg, p.bg}
 					x++
 					p.cx++
@@ -184,7 +188,7 @@ func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
 	case pansi.CursorForward:
 		p.cx++
 	case pansi.EraseLine:
-		row := &p.cells[p.sy]
+		row := p.bottomLine()
 		for i := p.cx; i < len(*row); i++ {
 			(*row)[i] = termbox.Cell{' ', p.fg, p.bg}
 		}
