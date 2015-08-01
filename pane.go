@@ -201,7 +201,7 @@ func (p *Pane) SetGraphicMode(vals []int) {
 	for i := 0; i < len(vals); i++ {
 		switch vals[i] {
 		case 0:
-			p.fg, p.bg = 0, 0
+			p.fg, p.bg = 8, 1
 		case 1:
 			p.fg |= termbox.AttrBold
 		case 7:
@@ -215,6 +215,8 @@ func (p *Pane) SetGraphicMode(vals []int) {
 			case 2:
 				i += 3 //TODO
 			}
+		case 39:
+			p.fg = termbox.ColorWhite
 		case 48:
 			i++
 			switch vals[i] {
@@ -224,6 +226,8 @@ func (p *Pane) SetGraphicMode(vals []int) {
 			case 2:
 				i += 3 //TODO
 			}
+		case 49:
+			p.bg = termbox.ColorBlack
 		}
 	}
 }
