@@ -194,6 +194,8 @@ func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
 		}
 	case pansi.EraseDisplay:
 		p.Clear()
+	default:
+		log.Printf("Doing nothing with %+v\n", *c)
 	}
 }
 
