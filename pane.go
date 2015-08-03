@@ -9,14 +9,30 @@ import (
 	"os/exec"
 )
 
+const (
+	MODE_CURSOR = 1 << iota
+	MODE_INSERT
+	MODE_KCURSOR
+	MODE_KKEYPAD
+	MODE_WRAP
+	MODE_MOUSE_STANDARD
+	MODE_MOUSE_BUTTON
+	MODE_BLINKING
+	MODE_MOUSE_UTF8
+	MODE_MOUSE_SGR
+	MODE_BRACKETPASTE
+	MODE_FOCUSON
+)
+
 type Pane struct {
 	*exec.Cmd
 
+	mode          int
 	cx, cy        int
-	sx, sy        int
 	fg, bg        termbox.Attribute
 	width, height uint16
 	scrollOffset  int
+	drawOffset    int
 
 	Prog string
 	Args []string
