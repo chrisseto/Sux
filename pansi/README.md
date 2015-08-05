@@ -143,4 +143,4 @@ Note: Quotes indicate raw text
 * ^[[54;1H
 * ^[[?1049l
 * ^[[?1l
-* ^[>bash-3.2$
+* ^[>
