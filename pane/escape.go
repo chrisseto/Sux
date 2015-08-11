@@ -3,7 +3,7 @@ package pane
 import (
 	"github.com/chrisseto/sux/pansi"
 	"github.com/nsf/termbox-go"
-	// "log"
+	"log"
 )
 
 func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
@@ -25,14 +25,14 @@ func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
 	case pansi.CursorForward:
 		p.cx++
 	case pansi.EraseLine:
-		row := p.bottomLine()
+		row := p.screen.Row(p.cy)
 		for i := p.cx; i < len(*row); i++ {
 			(*row)[i] = termbox.Cell{' ', p.fg, p.bg}
 		}
 	case pansi.EraseDisplay:
 		p.Clear()
 	default:
-		// log.Printf("Doing nothing with %+v\n", *c)
+		log.Printf("Doing nothing with %+v\n", *c)
 	}
 }
 

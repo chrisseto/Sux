@@ -4,6 +4,8 @@ import (
 	"github.com/chrisseto/sux/pansi"
 	"github.com/nsf/termbox-go"
 	"io"
+	"log"
+	"os"
 )
 
 const (
@@ -14,8 +16,8 @@ const (
 )
 
 func (p *Pane) HandleKey(key byte) {
-	if p.cx >= int(p.width) {
-		p.row = p.NewLine()
+	if p.cx >= p.width {
+		p.NewLine()
 	}
 	// if p.mode & MODE_WRAP {
 	// 	p.row = p.newLine()
@@ -23,7 +25,7 @@ func (p *Pane) HandleKey(key byte) {
 	// p.row = append(p.row, make([]termbox.Cell, p.width))
 	// }
 	// }
-	(*p.row)[p.cx] = termbox.Cell{rune(key), p.fg, p.bg}
+	*p.screen.Cell(p.cx, p.cy) = termbox.Cell{rune(key), p.fg, p.bg}
 	p.cx++
 }
 
@@ -31,21 +33,23 @@ func (p *Pane) BackSpace() {
 	if p.cx != 0 {
 		p.cx--
 	}
-	(*p.row)[p.cx] = termbox.Cell{' ', p.fg, p.bg} //Should this always be 8, 1?
+	*p.screen.Cell(p.cx, p.cy) = termbox.Cell{' ', p.fg, p.bg} //Should this always be 8, 1?
 }
 
 func (p *Pane) Clear() {
-	p.drawOffset = len(p.cells) - 1
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault) //Should not be here
+	p.screen.AppendRows(p.height)
 	p.redraw()
 }
 
 func (p *Pane) mainLoop() {
 	lexer := pansi.NewLexer()
 	buf := make([]byte, 32*1024)
-
+	f, _ := os.Create("pane.raw")
+	logfile, _ := os.Create("pane.log")
+	log.SetOutput(logfile)
 	for {
 		nr, err := p.Pty.Read(buf)
+		f.Write(buf[:nr])
 		if nr > 0 {
 			for _, char := range buf[:nr] {
 				lexer.Feed(char)
@@ -61,7 +65,7 @@ func (p *Pane) mainLoop() {
 				switch char {
 				case TERMINAL_BELL: //Skip for the moment
 				case NEW_LINE:
-					p.row = p.NewLine()
+					p.NewLine()
 				case CARRIAGE_RETURN:
 					p.cx = 0
 				case BACKSPACE:

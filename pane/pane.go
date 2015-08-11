@@ -12,9 +12,8 @@ type Pane struct {
 
 	mode          int
 	cx, cy        int
-	row           *[]termbox.Cell
 	fg, bg        termbox.Attribute
-	width, height uint16
+	width, height int
 	scrollOffset  int
 	drawOffset    int
 
@@ -22,11 +21,11 @@ type Pane struct {
 	Args []string
 
 	Pty          *os.File
-	cells        [][]termbox.Cell
+	screen       Screen
 	ShouldRedraw chan struct{}
 }
 
-func CreatePane(width, height uint16, prog string, args ...string) *Pane {
+func CreatePane(width, height int, prog string, args ...string) *Pane {
 	return &Pane{
 		Cmd: exec.Command(prog, args...),
 		cx:  0, cy: 0,
@@ -36,7 +35,7 @@ func CreatePane(width, height uint16, prog string, args ...string) *Pane {
 		Prog:         prog, Args: args,
 		width: width, height: height,
 		Pty:          nil,
-		row:          nil,
+		screen:       NewScreen(width, height),
 		ShouldRedraw: make(chan struct{}),
 	}
 }
@@ -46,13 +45,10 @@ func (p *Pane) Start() error {
 	if err != nil {
 		panic(err)
 	}
-	if err = pty.Setsize(pterm, p.height, p.width); err != nil {
+	if err = pty.Setsize(pterm, uint16(p.height), uint16(p.width)); err != nil {
 		panic(err)
 	}
 	p.Pty = pterm
-	p.cells = make([][]termbox.Cell, 1, p.height)
-	p.cells[0] = make([]termbox.Cell, p.width)
-	p.row = p.bottomLine()
 	go p.mainLoop()
 	return nil
 }
@@ -63,14 +59,14 @@ func (p *Pane) Close() error {
 }
 
 func (p *Pane) Cells() [][]termbox.Cell {
-	return p.cells[p.drawOffset:bound(p.drawOffset+int(p.height), p.drawOffset, len(p.cells))]
+	return p.screen.Cells()
 }
 
-func (p *Pane) Width() uint16 {
+func (p *Pane) Width() int {
 	return p.width
 }
 
-func (p *Pane) Height() uint16 {
+func (p *Pane) Height() int {
 	return p.height
 }
 
@@ -82,21 +78,16 @@ func (p *Pane) redraw() {
 }
 
 func (p *Pane) Scroll(far int) {
-	p.scrollOffset = bound(p.scrollOffset+far, -len(p.cells), 0)
+	p.screen.SetScrollOffset(far)
 	p.redraw()
 }
 
-func (p *Pane) bottomLine() *[]termbox.Cell {
-	return &p.cells[len(p.cells)-1]
-}
-
-func (p *Pane) NewLine() *[]termbox.Cell {
+func (p *Pane) NewLine() {
 	p.cy++
-	p.cells = append(p.cells, make([]termbox.Cell, p.width))
-	if len(p.cells)-p.drawOffset > int(p.height) {
-		p.drawOffset++
+	if p.cy > p.height-1 {
+		p.cy = p.height - 1
+		p.screen.AppendRows(1)
 	}
-	return p.bottomLine()
 }
 
 func (p *Pane) Redraw() {
@@ -119,7 +110,7 @@ func bound(val, min, max int) int {
 }
 
 func (p *Pane) Cursor() (int, int) {
-	p.cx = bound(p.cx, 0, int(p.width)-1)
-	p.cy = bound(p.cy, 0, int(p.height)-1)
+	p.cx = bound(p.cx, 0, p.width-1)
+	p.cy = bound(p.cy, 0, p.height-1)
 	return p.cx, p.cy
 }
