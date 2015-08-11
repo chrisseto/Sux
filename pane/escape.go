@@ -43,6 +43,10 @@ func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
 }
 
 func (p *Pane) SetGraphicMode(vals []int) {
+	if len(vals) == 0 {
+		p.fg, p.bg = 8, 1
+		return
+	}
 	for i := 0; i < len(vals); i++ {
 		switch vals[i] {
 		case 0:
