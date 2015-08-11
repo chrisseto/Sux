@@ -20,14 +20,13 @@ func RunPanes() error {
 	quitChan = make(chan bool)
 	selectChan = make(chan *pane.Pane)
 	width, height := termbox.Size()
-	uwidth, uheight := uint16(width), uint16(height-1)
 	cmds := strings.Split(strings.Join(flag.Args(), " "), ",")
 
 	RunningPanes = make([]*pane.Pane, len(cmds))
 
 	for i, cmd := range cmds {
 		cmdsp := strings.Split(strings.Trim(cmd, " "), " ")
-		RunningPanes[i] = pane.CreatePane(uwidth, uheight, cmdsp[0], cmdsp[1:]...)
+		RunningPanes[i] = pane.CreatePane(width, height-1, cmdsp[0], cmdsp[1:]...)
 		err := RunningPanes[i].Start()
 
 		if err != nil {
