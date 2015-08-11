@@ -17,6 +17,8 @@ var csiDispatchMap = map[byte]AnsiEscapeType{
 	0x44: CursorBackward,
 	0x4A: EraseDisplay,
 	0x4B: EraseLine,
+	0x64: VPA,
+	0x65: VPR,
 	0x68: DecPrivateModeSet,
 	0x6C: ResetMode,
 	0x72: SetBottomTopLines,

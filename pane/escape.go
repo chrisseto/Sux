@@ -24,6 +24,12 @@ func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
 		p.cx--
 	case pansi.CursorForward:
 		p.cx++
+	case pansi.VPA:
+		if len(c.Values) == 0 {
+			p.cy = 0
+		} else {
+			p.cy = c.Values[0] - 1
+		}
 	case pansi.EraseLine:
 		row := p.screen.Row(p.cy)
 		for i := p.cx; i < len(*row); i++ {
