@@ -3,30 +3,31 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/chrisseto/sux/pane"
 	"github.com/nsf/termbox-go"
 	"strings"
 )
 
 var (
 	quitChan      chan bool
-	selectChan    chan *Pane
+	selectChan    chan *pane.Pane
 	selectedIndex = 0
-	SelectedPane  *Pane
-	RunningPanes  []*Pane
+	SelectedPane  *pane.Pane
+	RunningPanes  []*pane.Pane
 )
 
 func RunPanes() error {
 	quitChan = make(chan bool)
-	selectChan = make(chan *Pane)
+	selectChan = make(chan *pane.Pane)
 	width, height := termbox.Size()
 	uwidth, uheight := uint16(width), uint16(height-1)
 	cmds := strings.Split(strings.Join(flag.Args(), " "), ",")
 
-	RunningPanes = make([]*Pane, len(cmds))
+	RunningPanes = make([]*pane.Pane, len(cmds))
 
 	for i, cmd := range cmds {
 		cmdsp := strings.Split(strings.Trim(cmd, " "), " ")
-		RunningPanes[i] = CreatePane(uwidth, uheight, cmdsp[0], cmdsp[1:]...)
+		RunningPanes[i] = pane.CreatePane(uwidth, uheight, cmdsp[0], cmdsp[1:]...)
 		err := RunningPanes[i].Start()
 
 		if err != nil {
@@ -53,6 +54,10 @@ func OutputLoop() {
 	termbox.Flush()
 	for {
 		select {
+		case <-selected.ShouldRedraw:
+			selected.Redraw()
+			WriteStatusBar(selected)
+			termbox.Flush()
 		case <-redraw:
 			selected.Redraw()
 			WriteStatusBar(selected)
@@ -96,7 +101,7 @@ func EndPanes() {
 	}
 }
 
-func WriteStatusBar(pane *Pane) {
+func WriteStatusBar(pane *pane.Pane) {
 	width, height := termbox.Size()
 	statusString := fmt.Sprintf("Pane #%d Command %s Args %v %s Mode", selectedIndex, pane.Prog, pane.Args, CurrentMode.Name)
 	i := 0
