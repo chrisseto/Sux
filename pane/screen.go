@@ -50,7 +50,7 @@ func (s *Screen) SetScrollOffset(offset int) {
 	if offset > bound {
 		offset = bound
 	}
-	s.scrollbackOffset = bound
+	s.scrollbackOffset = offset
 }
 
 func (s *Screen) AppendRows(n int) {
