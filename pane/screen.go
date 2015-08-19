@@ -53,6 +53,13 @@ func (s *Screen) SetScrollOffset(offset int) {
 	s.scrollbackOffset = offset
 }
 
+//Scroll the screen offset number of lines
+//Negative numbers scroll up
+//Positive numbers scroll down
+func (s *Screen) Scroll(offset int) {
+	s.SetScrollOffset(s.scrollbackOffset - offset)
+}
+
 func (s *Screen) AppendRows(n int) {
 	toAppend := make([][]termbox.Cell, n)
 
