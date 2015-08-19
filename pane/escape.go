@@ -37,6 +37,21 @@ func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
 		}
 	case pansi.EraseDisplay:
 		p.Clear()
+	case pansi.DeleteLine:
+		var val int
+		if len(c.Values) == 0 {
+			val = 1
+		} else {
+			val = c.Values[0]
+		}
+		p.screen.DeleteRows(p.cy, val)
+		p.screen.AppendRows(val)
+	case pansi.ReverseIndex:
+		if p.cy > 0 {
+			p.cy--
+		} else {
+			p.screen.Scroll(-1)
+		}
 	default:
 		log.Printf("Doing nothing with %+v\n", *c)
 	}
