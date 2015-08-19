@@ -22,8 +22,12 @@ const (
 	SetUsg0
 	DECKPAM
 	DesignateG0CharacterSet
-	VPA //Vertical Line Position Absolute
-	VPR //Vertical Line Position Relative
+	VPA        //Vertical Line Position Absolute
+	VPR        //Vertical Line Position Relative
+	DeleteLine //DL (default 1)
+	InsertLine //IL (default 1)
+	Index
+	ReverseIndex
 )
 
 type AnsiEscapeCode struct {

@@ -17,6 +17,8 @@ var csiDispatchMap = map[byte]AnsiEscapeType{
 	0x44: CursorBackward,
 	0x4A: EraseDisplay,
 	0x4B: EraseLine,
+	0x4C: DeleteLine,
+	0x4D: InsertLine,
 	0x64: VPA,
 	0x65: VPR,
 	0x68: DecPrivateModeSet,
@@ -26,6 +28,8 @@ var csiDispatchMap = map[byte]AnsiEscapeType{
 
 var escDispatchMap = map[byte]AnsiEscapeType{
 	0x3D: DECKPAM,
+	0x44: Index,
+	0x4d: ReverseIndex,
 }
 
 func csiDispatch(l *Lexer, b byte) *AnsiEscapeCode {
