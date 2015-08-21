@@ -70,6 +70,22 @@ func (p *Pane) SetGraphicMode(vals []int) {
 			p.fg |= termbox.AttrBold
 		case 7:
 			p.fg, p.bg = p.bg, p.fg
+		case 30:
+			fallthrough
+		case 31:
+			fallthrough
+		case 32:
+			fallthrough
+		case 33:
+			fallthrough
+		case 34:
+			fallthrough
+		case 35:
+			fallthrough
+		case 36:
+			fallthrough
+		case 37:
+			p.fg = termbox.Attribute(vals[i] - 29) //-30 + 1 for termbox offset
 		case 38:
 			i++
 			switch vals[i] {
@@ -81,6 +97,22 @@ func (p *Pane) SetGraphicMode(vals []int) {
 			}
 		case 39:
 			p.fg = termbox.ColorWhite
+		case 40:
+			fallthrough
+		case 41:
+			fallthrough
+		case 42:
+			fallthrough
+		case 43:
+			fallthrough
+		case 44:
+			fallthrough
+		case 45:
+			fallthrough
+		case 46:
+			fallthrough
+		case 47:
+			p.bg = termbox.Attribute(vals[i] - 39) //-40 + 1 for termbox offset
 		case 48:
 			i++
 			switch vals[i] {
