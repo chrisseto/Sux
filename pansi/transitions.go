@@ -19,6 +19,7 @@ var csiDispatchMap = map[byte]AnsiEscapeType{
 	0x4B: EraseLine,
 	0x4C: DeleteLine,
 	0x4D: InsertLine,
+	0x50: DeleteCharacter,
 	0x64: VPA,
 	0x65: VPR,
 	0x68: DecPrivateModeSet,
