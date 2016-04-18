@@ -38,11 +38,12 @@ func CreatePane(prog string, args []string, width, height int) *Pane {
 		prog:         prog,
 		args:         args,
 		ShouldRedraw: make(chan struct{}, 2), // TODO Fix this, there really shouldn't be a reason to buffer this
-		buffer:       NewRingBuffer(width, height*10),
+		buffer:       NewRingBuffer(make([][]termbox.Cell, 0, height)),
 		height:       height,
 		width:        width,
 		cursor:       NewCursor(width, height-1),
 	}
+	p.buffer.Append(make([]termbox.Cell, p.width))
 
 	return p
 }

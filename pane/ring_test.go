@@ -6,7 +6,11 @@ import (
 )
 
 func TestAppend(t *testing.T) {
-	ring := NewRingBuffer(1, 10)
+	ring := NewRingBuffer(make([][]termbox.Cell, 0, 10))
+
+	for i := 0; i < 9; i++ {
+		ring.Append(make([]termbox.Cell, 1))
+	}
 
 	for i := 0; i < 100; i++ {
 		ring.Append([]termbox.Cell{
@@ -19,10 +23,12 @@ func TestAppend(t *testing.T) {
 }
 
 func TestAppendShiftsHead(t *testing.T) {
-	ring := NewRingBuffer(1, 10)
+	ring := NewRingBuffer(make([][]termbox.Cell, 0, 10))
 
 	for i := 0; i < 10; i++ {
-		ring.Get(i)[0].Ch = rune(i)
+		ring.Append([]termbox.Cell{
+			termbox.Cell{rune(i), 0x0, 0x0},
+		})
 	}
 
 	for i := 10; i < 100; i++ {
@@ -36,10 +42,12 @@ func TestAppendShiftsHead(t *testing.T) {
 }
 
 func TestRange(t *testing.T) {
-	ring := NewRingBuffer(1, 10)
+	ring := NewRingBuffer(make([][]termbox.Cell, 0, 10))
 
 	for i := 0; i < 10; i++ {
-		ring.Get(i)[0].Ch = rune(i)
+		ring.Append([]termbox.Cell{
+			termbox.Cell{rune(i), 0x0, 0x0},
+		})
 	}
 
 	for i := 0; i < 100; i++ {

@@ -10,14 +10,10 @@ type RingBuffer struct {
 	index  int
 }
 
-func NewRingBuffer(width, length int) RingBuffer {
+func NewRingBuffer(initial [][]termbox.Cell) RingBuffer {
 	r := RingBuffer{
-		buffer: make([][]termbox.Cell, length),
 		index:  0,
-	}
-
-	for i := 0; i < length; i++ {
-		r.buffer[i] = make([]termbox.Cell, width)
+		buffer: initial,
 	}
 
 	return r
@@ -25,6 +21,10 @@ func NewRingBuffer(width, length int) RingBuffer {
 
 func (r *RingBuffer) Append(data []termbox.Cell) {
 	log.Printf("Appending at index %d with length %d", r.index, len(r.buffer))
+	if cap(r.buffer) != len(r.buffer) {
+		r.buffer = append(r.buffer, data)
+		return
+	}
 	r.buffer[r.index] = data
 
 	r.index++
@@ -38,7 +38,14 @@ func (r *RingBuffer) Get(i int) []termbox.Cell {
 	return r.buffer[r.offset(i)]
 }
 
+func (r *RingBuffer) Set(i int, data []termbox.Cell) {
+	r.buffer[r.offset(i)] = data
+}
+
 func (r *RingBuffer) offset(i int) int {
+	if cap(r.buffer) != len(r.buffer) {
+		return i
+	}
 	if r.index+i >= len(r.buffer) {
 		return (r.index + i) - len(r.buffer)
 	}
@@ -47,6 +54,9 @@ func (r *RingBuffer) offset(i int) int {
 
 func (r *RingBuffer) Range(begin, length int) [][]termbox.Cell {
 	start := r.offset(begin)
+	if length > len(r.buffer) {
+		length = len(r.buffer)
+	}
 	//Golang slices are EXCLUSIVE
 	//IE [1...10][0:9] -> [1,2,3,4,5,6,7,8]
 	end := r.offset(begin + length - 1)

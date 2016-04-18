@@ -34,7 +34,7 @@ func (p *Pane) defaultByteHandler(b byte) {
 }
 
 func (p *Pane) NewLine() {
-	// p.buffer.Append(make([]termbox.Cell, p.width))
+	p.buffer.Append(make([]termbox.Cell, p.width))
 	p.cursor.Down(1)
 }
 
