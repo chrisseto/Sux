@@ -9,6 +9,7 @@ type Screen struct {
 }
 
 func NewScreen(width, height int) Screen {
+	height *= 5
 	s := Screen{
 		cells:            make([][]termbox.Cell, height, height*10),
 		width:            width,
@@ -17,7 +18,7 @@ func NewScreen(width, height int) Screen {
 	}
 
 	for i := 0; i < height; i++ {
-		s.cells[i] = make([]termbox.Cell, width, width*2)
+		s.cells[i] = make([]termbox.Cell, width*2, width*4)
 	}
 	return s
 }
@@ -68,4 +69,10 @@ func (s *Screen) AppendRows(n int) {
 	}
 
 	s.cells = append(s.cells, toAppend...)
+}
+
+func (s *Screen) DeleteRows(start, count int) {
+	//TODO needs validation
+	//NOTE Escape code should do nothing outside of scrollzone
+	s.cells = append(s.cells[:start], s.cells[:start+count]...)
 }

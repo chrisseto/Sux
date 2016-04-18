@@ -1,116 +1,158 @@
 package pane
 
 import (
-	"github.com/chrisseto/pty"
-	"github.com/nsf/termbox-go"
+	"io"
+	"log"
 	"os"
 	"os/exec"
+
+	"github.com/chrisseto/pty"
+	"github.com/chrisseto/sux/pansi"
+	"github.com/nsf/termbox-go"
 )
 
 type Pane struct {
-	*exec.Cmd
-
-	mode          int
-	cx, cy        int
-	fg, bg        termbox.Attribute
+	cmd           *exec.Cmd
+	index         int
+	buffer        RingBuffer
 	width, height int
-	scrollOffset  int
-	drawOffset    int
+	length        int
+	pty           *os.File
+	cursor        *Cursor
+	//Color state
+	fg termbox.Attribute
+	bg termbox.Attribute
 
-	Prog string
-	Args []string
+	//Launch parameters
+	prog string
+	args []string
 
-	Pty          *os.File
-	screen       Screen
+	//TODO Remove this
 	ShouldRedraw chan struct{}
 }
 
-func CreatePane(width, height int, prog string, args ...string) *Pane {
-	return &Pane{
-		Cmd: exec.Command(prog, args...),
-		cx:  0, cy: 0,
-		fg: 8, bg: 1,
-		scrollOffset: 0,
-		drawOffset:   0,
-		Prog:         prog, Args: args,
-		width: width, height: height,
-		Pty:          nil,
-		screen:       NewScreen(width, height),
-		ShouldRedraw: make(chan struct{}),
+func CreatePane(prog string, args []string, width, height int) *Pane {
+	p := &Pane{
+		cmd:          exec.Command(prog, args...),
+		pty:          nil,
+		prog:         prog,
+		args:         args,
+		ShouldRedraw: make(chan struct{}, 2), // TODO Fix this, there really shouldn't be a reason to buffer this
+		buffer:       NewRingBuffer(width, height*10),
+		height:       height,
+		width:        width,
+		cursor:       NewCursor(width, height-1),
 	}
+
+	return p
 }
 
 func (p *Pane) Start() error {
-	pterm, err := pty.Start(p.Cmd)
+	var err error
+	p.pty, err = pty.Start(p.cmd)
 	if err != nil {
 		panic(err)
 	}
-	if err = pty.Setsize(pterm, uint16(p.height), uint16(p.width)); err != nil {
+
+	if err = pty.Setsize(p.pty, uint16(p.height), uint16(p.width)); err != nil {
 		panic(err)
 	}
-	p.Pty = pterm
-	go p.mainLoop()
+
+	go p.main()
+
 	return nil
 }
 
-func (p *Pane) Close() error {
-	//TODO end process nicely
-	return p.Process.Kill()
+func (p *Pane) Stop() error {
+	if err := p.cmd.Process.Kill(); err != nil {
+		return err
+	}
+
+	// if err := p.pty.Close(); err != nil {
+	// 	return err
+	// }
+
+	return nil
 }
 
-func (p *Pane) Cells() [][]termbox.Cell {
-	return p.screen.Cells()
+func (p *Pane) Kill() error {
+	return nil
 }
 
-func (p *Pane) Width() int {
-	return p.width
+func (p *Pane) Prog() string {
+	return p.prog
 }
 
-func (p *Pane) Height() int {
-	return p.height
+func (p *Pane) Args() []string {
+	return p.args
+}
+
+func (p *Pane) Send(input []byte) (int, error) {
+	return p.pty.Write(input)
+}
+
+func (p *Pane) VisibleCells() [][]termbox.Cell {
+	return p.buffer.Range(0, p.height)
+}
+
+func (p *Pane) Cell(x, y int) *termbox.Cell {
+	return &p.buffer.Get(y)[x]
+}
+
+func (p *Pane) Draw(xOffset, yOffset int) {
+	log.Printf("Drawing pane\n")
+	for y, line := range p.VisibleCells() {
+		for x, cell := range line {
+			termbox.SetCell(x+xOffset, y+yOffset, cell.Ch, cell.Fg, cell.Bg)
+		}
+	}
+	// Finally Position the cursor
+	termbox.SetCursor(p.cursor.Get())
+	log.Printf("Finished drawing pane\n")
 }
 
 func (p *Pane) redraw() {
 	select {
 	case p.ShouldRedraw <- struct{}{}:
 	default: //Failed to send, a redraw is already happening
+		log.Printf("Redraw request unaccepted\n")
 	}
 }
 
-func (p *Pane) Scroll(far int) {
-	p.screen.SetScrollOffset(far)
-	p.redraw()
-}
+func (p *Pane) main() {
+	lexer := pansi.NewLexer()
+	buf := make([]byte, 32*1024)
 
-func (p *Pane) NewLine() {
-	p.cy++
-	if p.cy > p.height-1 {
-		p.cy = p.height - 1
-		p.screen.AppendRows(1)
-	}
-}
+	for {
+		nr, err := p.pty.Read(buf)
 
-func (p *Pane) Redraw() {
-	for y, line := range p.Cells() {
-		for x, cell := range line {
-			termbox.SetCell(x, y, cell.Ch, cell.Fg, cell.Bg)
+		if err != nil {
+			if err == io.EOF {
+				break // This pane's process has terminated
+			}
+			panic(err)
 		}
-	}
-	termbox.SetCursor(p.Cursor())
-}
 
-func bound(val, min, max int) int {
-	if val < min {
-		return min
-	}
-	if val > max {
-		return max
-	}
-	return val
-}
+		if nr < 1 {
+			continue // Nothing to do, no output from the proccess
+		}
 
-func (p *Pane) Cursor() (int, int) {
-	p.cx = bound(p.cx, 0, p.width-1)
-	p.cy = bound(p.cy, 0, p.height-1)
-	return p.cx, p.cy
+		for _, char := range buf[:nr] {
+			lexer.Feed(char)
+
+			if res := lexer.Result(); res != nil {
+				p.handleEscapeCode(res)
+				lexer.Clear()
+				continue
+			}
+
+			if lexer.State() != pansi.Ground {
+				continue
+			}
+
+			p.handleByte(char)
+		}
+
+		p.redraw()
+	}
 }

@@ -6,6 +6,12 @@ import (
 	"log"
 )
 
+type CursorState struct {
+	x, y   int
+	wrap   bool
+	fg, bg termbox.Attribute
+}
+
 func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
 	switch c.Type {
 	case pansi.SetGraphicMode:
@@ -16,6 +22,7 @@ func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
 		} else {
 			p.cx, p.cy = c.Values[1]-1, c.Values[0]-1
 		}
+		log.Printf("Setting cursor to (%d, %d)\n", p.cx, p.cy)
 	case pansi.CursorUp:
 		p.cy--
 	case pansi.CursorDown:
@@ -52,6 +59,18 @@ func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
 		} else {
 			p.screen.Scroll(-1)
 		}
+	case pansi.DeleteCharacter:
+		var val int
+		if len(c.Values) == 0 {
+			val = 1
+		} else {
+			val = c.Values[0]
+		}
+		row := *p.screen.Row(p.cy)
+		if val+p.cx >= len(row) {
+			val = len(row) - p.cx
+		}
+		row = append(append(row[:p.cx], row[p.cx+val:]...), make([]termbox.Cell, val)...)
 	default:
 		log.Printf("Doing nothing with %+v\n", *c)
 	}

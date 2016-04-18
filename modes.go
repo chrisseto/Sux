@@ -18,18 +18,19 @@ var (
 	CurrentMode Mode
 	DefaultMode Mode
 
-	ScrollMode = Mode{
-		Name:        "Scroll",
-		Trigger:     InputTrigger('['),
-		HandleInput: ScrollModeHandler,
-		SubModes:    nil,
-	}
+	// ScrollMode = Mode{
+	// 	Name:        "Scroll",
+	// 	Trigger:     InputTrigger('['),
+	// 	HandleInput: ScrollModeHandler,
+	// 	SubModes:    nil,
+	// }
 
 	CommandMode = Mode{
 		Name:        "Command",
 		Trigger:     InputTrigger(termbox.KeyCtrlB),
 		HandleInput: CommandModeHandler,
-		SubModes:    []Mode{ScrollMode},
+		SubModes:    nil,
+		// SubModes:    []Mode{ScrollMode},
 	}
 
 	InputMode = Mode{
@@ -50,19 +51,19 @@ func SetMode(newMode *Mode) {
 }
 
 func InputModeHandler(raw []byte, ev termbox.Event) {
-	SelectedPane.Pty.Write(raw)
+	SelectedPane.Send(raw)
 }
 
-func ScrollModeHandler(raw []byte, ev termbox.Event) {
-	switch ev.Key {
-	case termbox.KeyEsc:
-		SetMode(&DefaultMode)
-	case termbox.KeyArrowUp:
-		SelectedPane.Scroll(-1)
-	case termbox.KeyArrowDown:
-		SelectedPane.Scroll(1)
-	}
-}
+// func ScrollModeHandler(raw []byte, ev termbox.Event) {
+// 	switch ev.Key {
+// 	case termbox.KeyEsc:
+// 		SetMode(&DefaultMode)
+// 	case termbox.KeyArrowUp:
+// 		SelectedPane.Scroll(-1)
+// 	case termbox.KeyArrowDown:
+// 		SelectedPane.Scroll(1)
+// 	}
+// }
 
 func CommandModeHandler(raw []byte, ev termbox.Event) {
 	switch ev.Key {

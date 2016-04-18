@@ -19,6 +19,12 @@ func (p *Pane) HandleKey(key byte) {
 	if p.cx >= p.width {
 		p.NewLine()
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Panic! %+v. Cursor at (%d, %d)", r, p.cx, p.cy)
+			panic(r)
+		}
+	}()
 	// if p.mode & MODE_WRAP {
 	// 	p.row = p.newLine()
 	// } else {
@@ -47,6 +53,7 @@ func (p *Pane) mainLoop() {
 	f, _ := os.Create("pane.raw")
 	logfile, _ := os.Create("pane.log")
 	log.SetOutput(logfile)
+	log.Printf("Pane width, height: %d, %d\n", p.width, p.height)
 	for {
 		nr, err := p.Pty.Read(buf)
 		f.Write(buf[:nr])

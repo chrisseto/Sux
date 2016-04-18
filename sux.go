@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/nsf/termbox-go"
+	"log"
+	"os"
 )
 
 func MaybePanic(err error) {
@@ -18,6 +20,13 @@ var (
 )
 
 func main() {
+	f, err := os.OpenFile("sux.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	log.SetOutput(f)
+
 	flag.Parse()
 	if len(flag.Args()) == 0 {
 		fmt.Println("sux: no commands given")

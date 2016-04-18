@@ -26,7 +26,7 @@ func RunPanes() error {
 
 	for i, cmd := range cmds {
 		cmdsp := strings.Split(strings.Trim(cmd, " "), " ")
-		RunningPanes[i] = pane.CreatePane(width, height-1, cmdsp[0], cmdsp[1:]...)
+		RunningPanes[i] = pane.CreatePane(cmdsp[0], cmdsp[1:], width, height-1)
 		err := RunningPanes[i].Start()
 
 		if err != nil {
@@ -48,17 +48,17 @@ func Redraw() {
 
 func OutputLoop() {
 	selected := <-selectChan
-	selected.Redraw()
+	selected.Draw(0, 0)
 	WriteStatusBar(selected)
 	termbox.Flush()
 	for {
 		select {
 		case <-selected.ShouldRedraw:
-			selected.Redraw()
+			selected.Draw(0, 0)
 			WriteStatusBar(selected)
 			termbox.Flush()
 		case <-redraw:
-			selected.Redraw()
+			selected.Draw(0, 0)
 			WriteStatusBar(selected)
 			termbox.Flush()
 		case selected = <-selectChan:
@@ -71,7 +71,7 @@ func OutputLoop() {
 func setPane(index int) {
 	SelectedPane = RunningPanes[index]
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	SelectedPane.Redraw()
+	SelectedPane.Draw(0, 0)
 	WriteStatusBar(SelectedPane)
 	termbox.Flush()
 	selectChan <- SelectedPane
@@ -95,14 +95,14 @@ func PrevPane() {
 
 func EndPanes() {
 	quitChan <- true
-	for _, cmd := range RunningPanes {
-		cmd.Close()
+	for _, pane := range RunningPanes {
+		pane.Stop()
 	}
 }
 
 func WriteStatusBar(pane *pane.Pane) {
 	width, height := termbox.Size()
-	statusString := fmt.Sprintf("Pane #%d Command %s Args %v %s Mode", selectedIndex, pane.Prog, pane.Args, CurrentMode.Name)
+	statusString := fmt.Sprintf("Pane #%d Command %s Args %v %s Mode", selectedIndex, pane.Prog(), pane.Args(), CurrentMode.Name)
 	i := 0
 	for _, char := range statusString {
 		termbox.SetCell(i, height-1, char, termbox.ColorBlack, termbox.ColorGreen)
