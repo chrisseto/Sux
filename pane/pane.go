@@ -14,7 +14,7 @@ import (
 type Pane struct {
 	cmd           *exec.Cmd
 	index         int
-	buffer        RingBuffer
+	screen        Screen
 	width, height int
 	length        int
 	pty           *os.File
@@ -38,12 +38,11 @@ func CreatePane(prog string, args []string, width, height int) *Pane {
 		prog:         prog,
 		args:         args,
 		ShouldRedraw: make(chan struct{}, 2), // TODO Fix this, there really shouldn't be a reason to buffer this
-		buffer:       NewRingBuffer(make([][]termbox.Cell, 0, height)),
+		screen:       NewScreen(width, height),
 		height:       height,
 		width:        width,
 		cursor:       NewCursor(width, height-1),
 	}
-	p.buffer.Append(make([]termbox.Cell, p.width))
 
 	return p
 }
@@ -92,23 +91,8 @@ func (p *Pane) Send(input []byte) (int, error) {
 	return p.pty.Write(input)
 }
 
-func (p *Pane) VisibleCells() [][]termbox.Cell {
-	ret := p.buffer.Range(0, p.height)
-
-	lines := p.height - len(ret) // Don't change lists while iterating over them
-	for i := 0; i < lines; i++ {
-		ret = append(ret, make([]termbox.Cell, p.width))
-	}
-
-	return ret
-}
-
-func (p *Pane) Cell(x, y int) *termbox.Cell {
-	return &p.buffer.Get(y)[x]
-}
-
 func (p *Pane) Draw(xOffset, yOffset int) {
-	for y, line := range p.VisibleCells() {
+	for y, line := range p.screen.Cells() {
 		for x, cell := range line {
 			termbox.SetCell(x+xOffset, y+yOffset, cell.Ch, cell.Fg, cell.Bg)
 		}

@@ -85,3 +85,19 @@ func (r *RingBuffer) Range(begin, length int) [][]termbox.Cell {
 
 	return r.buffer[start : end+1]
 }
+
+//TODO Test me
+func (r *RingBuffer) RollBack(count int) {
+	r.index -= count
+	if r.index < 0 {
+		r.index = len(r.buffer) + r.index
+	}
+}
+
+func (r *RingBuffer) Tail(count int) [][]termbox.Cell {
+	if count > r.Length() {
+		count = r.Length()
+	}
+
+	return r.Range(r.Length()-count, count)
+}

@@ -29,12 +29,12 @@ func (p *Pane) handleByte(b byte) {
 }
 
 func (p *Pane) defaultByteHandler(b byte) {
-	*p.Cell(p.cursor.Get()) = termbox.Cell{rune(b), p.fg, p.bg}
+	*p.screen.Cell(p.cursor.Get()) = termbox.Cell{rune(b), p.fg, p.bg}
 	p.cursor.Right(1)
 }
 
 func (p *Pane) NewLine() {
-	p.buffer.Append(make([]termbox.Cell, p.width))
+	p.screen.Append(make([]termbox.Cell, p.width))
 	p.cursor.Down(1)
 }
 
@@ -45,7 +45,7 @@ func (p *Pane) CarriageReturn() {
 func (p *Pane) Backspace() {
 	p.cursor.Left(1)
 	//Should this always be 8, 1?
-	*p.Cell(p.cursor.Get()) = termbox.Cell{' ', p.fg, p.bg}
+	*p.screen.Cell(p.cursor.Get()) = termbox.Cell{' ', p.fg, p.bg}
 }
 
 //This function intentionally left blank

@@ -4,6 +4,7 @@ import (
 	"github.com/chrisseto/sux/pansi"
 	"github.com/nsf/termbox-go"
 	"log"
+	"runtime/debug"
 )
 
 type EscapeCodeHandler func(p *Pane, c *pansi.AnsiEscapeCode)
@@ -16,11 +17,18 @@ var ESCAPE_HANDLERS = map[pansi.AnsiEscapeType]EscapeCodeHandler{
 
 	pansi.EraseLine:      (*Pane).EraseLine,
 	pansi.EraseDisplay:   (*Pane).EraseDisplay,
+	pansi.ReverseIndex:   (*Pane).ReverseIndex,
 	pansi.SetGraphicMode: (*Pane).SetGraphicMode,
 	pansi.CursorPosition: (*Pane).CursorPosition,
 }
 
 func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Print(debug.Stack())
+		}
+	}()
+
 	if handler, ok := ESCAPE_HANDLERS[c.Type]; ok {
 		handler(p, c)
 	} else {
@@ -100,8 +108,10 @@ func (p *Pane) SetGraphicMode(c *pansi.AnsiEscapeCode) {
 }
 
 func (p *Pane) EraseDisplay(c *pansi.AnsiEscapeCode) {
-	p.buffer.Clear()
-	p.buffer.Append(make([]termbox.Cell, p.width))
+	// p.buffer.Clear()
+	p.screen.Clear()
+	p.screen.NewLine()
+	// p.buffer.Append(make([]termbox.Cell, p.width))
 }
 
 func (p *Pane) CursorPosition(c *pansi.AnsiEscapeCode) {
@@ -113,8 +123,17 @@ func (p *Pane) CursorPosition(c *pansi.AnsiEscapeCode) {
 }
 
 func (p *Pane) EraseLine(c *pansi.AnsiEscapeCode) {
-	row := p.buffer.Get(p.cursor.Y())
+	row := p.screen.Row(p.cursor.Y())
 	for i := p.cursor.X(); i < len(row); i++ {
 		row[i] = termbox.Cell{' ', p.fg, p.bg}
+	}
+}
+
+func (p *Pane) ReverseIndex(c *pansi.AnsiEscapeCode) {
+	if p.cursor.Y() > 0 {
+		p.cursor.Up(1)
+	} else {
+		//TODO
+		// p.screen.Scroll(-1)
 	}
 }
