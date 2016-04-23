@@ -93,7 +93,14 @@ func (p *Pane) Send(input []byte) (int, error) {
 }
 
 func (p *Pane) VisibleCells() [][]termbox.Cell {
-	return p.buffer.Range(0, p.height)
+	ret := p.buffer.Range(0, p.height)
+
+	lines := p.height - len(ret) // Don't change lists while iterating over them
+	for i := 0; i < lines; i++ {
+		ret = append(ret, make([]termbox.Cell, p.width))
+	}
+
+	return ret
 }
 
 func (p *Pane) Cell(x, y int) *termbox.Cell {
@@ -101,7 +108,6 @@ func (p *Pane) Cell(x, y int) *termbox.Cell {
 }
 
 func (p *Pane) Draw(xOffset, yOffset int) {
-	log.Printf("Drawing pane\n")
 	for y, line := range p.VisibleCells() {
 		for x, cell := range line {
 			termbox.SetCell(x+xOffset, y+yOffset, cell.Ch, cell.Fg, cell.Bg)
@@ -109,7 +115,6 @@ func (p *Pane) Draw(xOffset, yOffset int) {
 	}
 	// Finally Position the cursor
 	termbox.SetCursor(p.cursor.Get())
-	log.Printf("Finished drawing pane\n")
 }
 
 func (p *Pane) redraw() {
