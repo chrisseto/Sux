@@ -9,7 +9,13 @@ import (
 type EscapeCodeHandler func(p *Pane, c *pansi.AnsiEscapeCode)
 
 var ESCAPE_HANDLERS = map[pansi.AnsiEscapeType]EscapeCodeHandler{
-	pansi.EraseDisplay:   (*Pane).Clear,
+	pansi.CursorUp:       (*Pane).CursorUp,
+	pansi.CursorDown:     (*Pane).CursorDown,
+	pansi.CursorForward:  (*Pane).CursorForward,
+	pansi.CursorBackward: (*Pane).CursorBackward,
+
+	pansi.EraseLine:      (*Pane).EraseLine,
+	pansi.EraseDisplay:   (*Pane).EraseDisplay,
 	pansi.SetGraphicMode: (*Pane).SetGraphicMode,
 	pansi.CursorPosition: (*Pane).CursorPosition,
 }
@@ -26,8 +32,23 @@ func (p *Pane) defaultEscapeCodeHandler(c *pansi.AnsiEscapeCode) {
 	log.Printf("Go unhandled escape code %+v\n", c)
 }
 
-func (p *Pane) SetGraphicMode(c *pansi.AnsiEscapeCode) {
+func (p *Pane) CursorUp(c *pansi.AnsiEscapeCode) {
+	p.cursor.Up(1)
+}
 
+func (p *Pane) CursorDown(c *pansi.AnsiEscapeCode) {
+	p.cursor.Down(1)
+}
+
+func (p *Pane) CursorForward(c *pansi.AnsiEscapeCode) {
+	p.cursor.Right(1)
+}
+
+func (p *Pane) CursorBackward(c *pansi.AnsiEscapeCode) {
+	p.cursor.Left(1)
+}
+
+func (p *Pane) SetGraphicMode(c *pansi.AnsiEscapeCode) {
 	switch {
 	case len(c.Values) == 0:
 		fallthrough
@@ -78,7 +99,7 @@ func (p *Pane) SetGraphicMode(c *pansi.AnsiEscapeCode) {
 
 }
 
-func (p *Pane) Clear(c *pansi.AnsiEscapeCode) {
+func (p *Pane) EraseDisplay(c *pansi.AnsiEscapeCode) {
 	p.buffer.Clear()
 	p.buffer.Append(make([]termbox.Cell, p.width))
 }
@@ -88,5 +109,12 @@ func (p *Pane) CursorPosition(c *pansi.AnsiEscapeCode) {
 		p.cursor.Set(0, 0)
 	} else {
 		p.cursor.Set(c.Values[1]-1, c.Values[0]-1)
+	}
+}
+
+func (p *Pane) EraseLine(c *pansi.AnsiEscapeCode) {
+	row := p.buffer.Get(p.cursor.Y())
+	for i := p.cursor.X(); i < len(row); i++ {
+		row[i] = termbox.Cell{' ', p.fg, p.bg}
 	}
 }

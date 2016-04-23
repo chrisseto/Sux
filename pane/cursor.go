@@ -53,3 +53,11 @@ func (c *Cursor) Set(x, y int) {
 func (c *Cursor) Get() (int, int) {
 	return c.x, c.y
 }
+
+func (c *Cursor) X() int {
+	return c.x
+}
+
+func (c *Cursor) Y() int {
+	return c.y
+}
