@@ -128,6 +128,55 @@ func TestClearPreserves(t *testing.T) {
 	}
 }
 
+func TestClearWorks(t *testing.T) {
+	ring := NewRingBuffer(make([][]termbox.Cell, 0, 10))
+
+	for i := 0; i < 100; i++ {
+		ring.Clear()
+		for j := 0; j < i; j++ {
+			ring.Append([]termbox.Cell{
+				termbox.Cell{rune(j), 0x0, 0x0},
+			})
+
+			if ring.Length() != j+1 && !(j > 9 && ring.Length() == 10) {
+				t.Errorf("Expected ring.Length() to be %d or 10 got %d", j+1, ring.Length())
+			}
+
+			if ring.Get(ring.Length() - 1)[0].Ch != rune(j) {
+				t.Fatalf("Expected ring.Get(%d) to be %v. Got %v", ring.Length()-1, rune(j), ring.Get(ring.Length() - 1)[0].Ch)
+			}
+		}
+	}
+}
+
+func TestClearWithRange(t *testing.T) {
+	ring := NewRingBuffer(make([][]termbox.Cell, 0, 10))
+
+	for i := 15; i < 16; i++ {
+		ring.Clear()
+		for j := 1; j < i; j++ {
+			ring.Append([]termbox.Cell{
+				termbox.Cell{rune(j), 0x0, 0x0},
+			})
+
+			data := ring.Range(0, j)
+
+			if len(data) != j && !(j > 9 && len(data) == 10) {
+				t.Errorf("Expected len(data) to be %d or 10. Got %d", j, len(data))
+			}
+
+			for index, cells := range data {
+				expected := rune(j - (len(data) - (index + 1)))
+
+				if cells[0].Ch != expected {
+					t.Logf("i = %d j = %d index = %d len(data) = %d", i, j, index, len(data))
+					t.Errorf("Expected data[%d] to be %v. Got %v", index, expected, data[index][0].Ch)
+				}
+			}
+		}
+	}
+}
+
 func BenchmarkAppending(b *testing.B) {
 	ring := NewRingBuffer(make([][]termbox.Cell, 0, 10))
 
