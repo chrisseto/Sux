@@ -29,7 +29,7 @@ func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
 }
 
 func (p *Pane) defaultEscapeCodeHandler(c *pansi.AnsiEscapeCode) {
-	log.Printf("Go unhandled escape code %+v\n", c)
+	log.Printf("Got unhandled escape code %+v\n", c)
 }
 
 func (p *Pane) CursorUp(c *pansi.AnsiEscapeCode) {
