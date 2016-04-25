@@ -88,9 +88,23 @@ func (r *RingBuffer) Range(begin, length int) [][]termbox.Cell {
 
 //TODO Test me
 func (r *RingBuffer) RollBack(count int) {
-	r.index -= count
-	if r.index < 0 {
-		r.index = len(r.buffer) + r.index
+	if count < 0 {
+		panic("Rolling forward unsupported")
+	}
+
+	if count > r.len {
+		panic("Rolling back further than there are elements")
+	}
+
+	if cap(r.buffer) != len(r.buffer) {
+		r.buffer = r.buffer[:len(r.buffer)-count]
+		r.len = len(r.buffer)
+	} else {
+		r.len -= count
+		r.index -= count
+		if r.index < 0 {
+			r.index = cap(r.buffer) + r.index
+		}
 	}
 }
 

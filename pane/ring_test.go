@@ -177,6 +177,46 @@ func TestClearWithRange(t *testing.T) {
 	}
 }
 
+func TestRollBack(t *testing.T) {
+	ring := NewRingBuffer(make([][]termbox.Cell, 0, 10))
+	ring.Append([]termbox.Cell{
+		termbox.Cell{rune(0), 0x0, 0x0},
+	})
+
+	for i := 1; i < 5; i++ {
+		ring.Append([]termbox.Cell{
+			termbox.Cell{rune(i), 0x0, 0x0},
+		})
+		ring.RollBack(1)
+		if ring.Tail(1)[0][0].Ch != rune(0) {
+			t.Errorf("Expected ring.Tail(1)[0] to be %v. Got %v", rune(0), ring.Tail(1)[0][0].Ch)
+		}
+	}
+}
+
+func TestRollBackX(t *testing.T) {
+	ring := NewRingBuffer(make([][]termbox.Cell, 0, 10))
+
+	for i := 2; i < 50; i++ {
+		for j := 0; j < i; j++ {
+			ring.Append([]termbox.Cell{
+				termbox.Cell{rune(j), 0x0, 0x0},
+			})
+		}
+		var expected rune
+		if i > 9 {
+			expected = rune(i - 9)
+		} else {
+			expected = rune(0)
+		}
+		ring.RollBack(ring.Length() - 1)
+		if ring.Tail(1)[0][0].Ch != expected {
+			t.Errorf("Expected ring.Tail(1)[0] to be %v. Got %v", expected, ring.Tail(1)[0][0].Ch)
+		}
+		ring.RollBack(1)
+	}
+}
+
 func BenchmarkAppending(b *testing.B) {
 	ring := NewRingBuffer(make([][]termbox.Cell, 0, 10))
 
