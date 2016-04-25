@@ -25,7 +25,8 @@ var ESCAPE_HANDLERS = map[pansi.AnsiEscapeType]EscapeCodeHandler{
 func (p *Pane) handleEscapeCode(c *pansi.AnsiEscapeCode) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Print(debug.Stack())
+			log.Printf("Error while handling escape code %+v. \n%v", c, r)
+			log.Printf("%s", debug.Stack())
 		}
 	}()
 
@@ -74,7 +75,7 @@ func (p *Pane) SetGraphicMode(c *pansi.AnsiEscapeCode) {
 
 	case 30 <= c.Values[0] && c.Values[0] <= 37:
 		// Set fg to Black/Red/Green/Yellow/Blue/Magenta/Cyan
-		p.fg = termbox.Attribute(c.Values[1] - 29) //-30 + 1 for termbox offset
+		p.fg = termbox.Attribute(c.Values[0] - 29) //-30 + 1 for termbox offset
 
 	case c.Values[0] == 38:
 		if c.Values[1] == 5 {
@@ -90,7 +91,7 @@ func (p *Pane) SetGraphicMode(c *pansi.AnsiEscapeCode) {
 
 	case 40 <= c.Values[0] && c.Values[0] <= 47:
 		// Set bg to Black/Red/Green/Yellow/Blue/Magenta/Cyan
-		p.bg = termbox.Attribute(c.Values[1] - 29) //-30 + 1 for termbox offset
+		p.bg = termbox.Attribute(c.Values[0] - 29) //-30 + 1 for termbox offset
 
 	case c.Values[0] == 48:
 		if c.Values[1] == 5 {
@@ -133,7 +134,6 @@ func (p *Pane) ReverseIndex(c *pansi.AnsiEscapeCode) {
 	if p.cursor.Y() > 0 {
 		p.cursor.Up(1)
 	} else {
-		//TODO
-		// p.screen.Scroll(-1)
+		p.screen.RollBack(1)
 	}
 }
