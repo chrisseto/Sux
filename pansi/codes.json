@@ -4000,7 +4000,7 @@
     },
     {
         "code": "DECSED",
-        "name": "Selective Erase in Display",
+        "name": "Selective Erase Display",
         "parameters": {},
         "format": [
             [
@@ -4024,7 +4024,7 @@
     },
     {
         "code": "DECSEL",
-        "name": "Selective Erase in Line",
+        "name": "Selective Erase Line",
         "parameters": {},
         "format": [
             [
@@ -4576,7 +4576,7 @@
     },
     {
         "code": "DECSTBM",
-        "name": "Set Top and Bottom Margins",
+        "name": "Set Top And Bottom Margins",
         "parameters": {
             "Pt": "is the line number for the top margin.\nDefault: Pt = 1."
         },
@@ -5117,7 +5117,7 @@
     },
     {
         "code": "ED",
-        "name": "Erase in Display",
+        "name": "Erase Display",
         "parameters": {},
         "format": [
             [
@@ -5139,7 +5139,7 @@
     },
     {
         "code": "EL",
-        "name": "Erase in Line",
+        "name": "Erase Line",
         "parameters": {},
         "format": [
             [
@@ -5331,6 +5331,26 @@
         ],
         "default": null,
         "short": "IND moves the cursor down one line in the same column. If the cursor is at the\nbottom margin, then the screen performs a scroll-up.",
+        "description": ""
+    },
+    {
+        "code": "RI",
+        "name": "ReverseIndex",
+        "parameters": {},
+        "format": [
+            [
+                [
+                    "ESC",
+                    "M"
+                ],
+                [
+                    "1B",
+                    "4D"
+                ]
+            ]
+        ],
+        "default": null,
+        "short": "Move the active position to the same horizontal position on the preceding line. If the active position is at the top margin, a scroll down is performed",
         "description": ""
     },
     {
