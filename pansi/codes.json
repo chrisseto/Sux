@@ -539,52 +539,6 @@
         "description": "As characters are deleted, the remaining characters between the cursor and\nright margin move to the left. Character attributes move with the characters.\nThe terminal adds blank spaces with no visual character attributes at the right\nmargin. DCH has no effect outside the scrolling margins."
     },
     {
-        "code": "DDD1, DDD2, DDD3",
-        "name": null,
-        "parameters": {},
-        "format": [
-            [
-                [
-                    "ESC",
-                    ")",
-                    "1"
-                ],
-                [
-                    "1B",
-                    "29",
-                    "31"
-                ]
-            ],
-            [
-                [
-                    "ESC",
-                    ")",
-                    "B"
-                ],
-                [
-                    "1B",
-                    "29",
-                    "42"
-                ]
-            ],
-            [
-                [
-                    "ESC",
-                    "(",
-                    "1"
-                ],
-                [
-                    "1B",
-                    "28",
-                    "31"
-                ]
-            ]
-        ],
-        "default": null,
-        "short": "DDD1, DDD2, and DDD3 are responses to the host for a Request Terminal State\nReport (DECRQTSR) control function. These responses only work for a Hebrew\nkeyboard.",
-        "description": "These escape sequences have the following effects:\n\n\n\n\n\n\nEscape Sequence\nMeaning\n\n\n\n\nDDD1\nDECRLM is set.\nDECHEBM is set.\nDECHEM is set\n\n\nDDD2\nDECRLM is reset.\nASCII is designated in G1.\n\n\nDDD3\nASCII is designated in G0.\n\n\n"
-    },
-    {
         "code": "DECAAM",
         "name": "Set/Reset Auto Answerback Mode",
         "parameters": {},
@@ -1190,44 +1144,6 @@
         ],
         "default": null,
         "short": "The host asks for a memory checksum report of current text macro definitions.",
-        "description": ""
-    },
-    {
-        "code": "DECCOLM",
-        "name": "Select 80 or 132 Columns per Page",
-        "parameters": {},
-        "format": [
-            [
-                [
-                    "CSI",
-                    "?",
-                    "3",
-                    "h"
-                ],
-                [
-                    "9B",
-                    "3F",
-                    "33",
-                    "68"
-                ]
-            ],
-            [
-                [
-                    "CSI",
-                    "?",
-                    "3",
-                    "l"
-                ],
-                [
-                    "9B",
-                    "3F",
-                    "33",
-                    "6C"
-                ]
-            ]
-        ],
-        "default": "80 columns",
-        "short": "There are two control functions that can set the page width to 80 or 132 columns,\nDECSCPP (DECSCPP\u2014Select 80 or 132 Columns per Page) and DECCOLM.",
         "description": ""
     },
     {
@@ -5141,24 +5057,6 @@
     },
     {
         "code": "DSR",
-        "name": "Cursor Position Report (CPR)",
-        "parameters": {},
-        "format": [],
-        "default": null,
-        "short": "The host asks the terminal for a cursor position report.",
-        "description": ""
-    },
-    {
-        "code": "DSR",
-        "name": "Data Integrity Report",
-        "parameters": {},
-        "format": [],
-        "default": null,
-        "short": "The host asks for the status of the data integrity flag. The data integrity flag\nindicates the integrity of the data flow between the terminal and host. This flag\nis reset each time the terminal sends a data integrity report.",
-        "description": ""
-    },
-    {
-        "code": "DSR",
         "name": "Device Status Reports",
         "parameters": {
             "Ps": "indicates the type of DSR requested. See the following individual DSR reports for\nspecific parameters within each report."
@@ -5194,71 +5092,6 @@
         "default": null,
         "short": "The host computer and terminal exchange DSR sequences to provide the host\nwith the operating status of the following features:",
         "description": "There is a different DSR request for each feature. The following sections describe\nthe possible DSR reports. If the terminal is in printer controller mode, then\nthe printer receives the DSR request. The printer can respond through the\nbidirectional printer port."
-    },
-    {
-        "code": "DSR",
-        "name": "Extended Cursor Position Report (DECXCPR)",
-        "parameters": {},
-        "format": [],
-        "default": null,
-        "short": "The host asks the terminal for the current cursor position, including the current\npage number.",
-        "description": ""
-    },
-    {
-        "code": "DSR",
-        "name": "Keyboard",
-        "parameters": {
-            "Pst": "indicates the keyboard status."
-        },
-        "format": [],
-        "default": null,
-        "short": "The host asks for the current keyboard language, operating status, and type.",
-        "description": ""
-    },
-    {
-        "code": "DSR",
-        "name": "Macro Space Report",
-        "parameters": {},
-        "format": [],
-        "default": null,
-        "short": "The host asks for the available macro space in the form of a macro space report\n(DECMSR).",
-        "description": ""
-    },
-    {
-        "code": "DSR",
-        "name": "Memory Checksum (DECCKSR)",
-        "parameters": {},
-        "format": [],
-        "default": null,
-        "short": "The host asks for a memory checksum report of current text macro definitions.",
-        "description": ""
-    },
-    {
-        "code": "DSR",
-        "name": "Operating Status",
-        "parameters": {},
-        "format": [],
-        "default": null,
-        "short": "The host requests the terminal's operating status.",
-        "description": ""
-    },
-    {
-        "code": "DSR",
-        "name": "Printer Port",
-        "parameters": {},
-        "format": [],
-        "default": null,
-        "short": "The host asks for the status of the terminal's printer.",
-        "description": ""
-    },
-    {
-        "code": "DSR",
-        "name": "User-Defined Keys (VT Level 4 Only)",
-        "parameters": {},
-        "format": [],
-        "default": null,
-        "short": "The host asks if the user-defined keys (UDKs) are locked or unlocked.",
-        "description": ""
     },
     {
         "code": "ECH",
@@ -5852,7 +5685,7 @@
     },
     {
         "code": "S7C1T",
-        "name": "Send C1 Control Character to the Host",
+        "name": "Send C1 Control Character to Host",
         "parameters": {},
         "format": [
             [
