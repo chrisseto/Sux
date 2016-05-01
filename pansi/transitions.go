@@ -8,7 +8,7 @@ import (
 type Transition func(*Lexer, byte) *AnsiEscapeCode
 
 var csiDispatchMap = map[byte]AnsiEscapeType{
-	0x6D: SetGraphicMode,
+	0x6D: SelectGraphicRendition,
 	0x66: CursorPosition,
 	0x48: CursorPosition,
 	0x41: CursorUp,
@@ -22,15 +22,15 @@ var csiDispatchMap = map[byte]AnsiEscapeType{
 	0x50: DeleteCharacter,
 	0x64: VPA,
 	0x65: VPR,
-	0x68: DecPrivateModeSet,
+	// 0x68: DecPrivateModeSet,
 	0x6C: ResetMode,
-	0x72: SetBottomTopLines,
+	0x72: SetTopAndBottomMargins,
 }
 
 var escDispatchMap = map[byte]AnsiEscapeType{
 	0x3D: DECKPAM,
 	0x44: Index,
-	0x4d: ReverseIndex,
+	0x4D: ReverseIndex,
 }
 
 func csiDispatch(l *Lexer, b byte) *AnsiEscapeCode {
@@ -61,7 +61,7 @@ func escDispatch(l *Lexer, b byte) *AnsiEscapeCode {
 	//Special cases
 	switch l.mode {
 	case 0x28:
-		return &AnsiEscapeCode{DesignateG0CharacterSet, []int{int(b)}}
+		return &AnsiEscapeCode{SelectCharacterSet, []int{int(b)}}
 	case 0x29:
 	case 0x2A:
 	case 0x2B:
